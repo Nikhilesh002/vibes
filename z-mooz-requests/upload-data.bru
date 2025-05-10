@@ -1,0 +1,23 @@
+meta {
+  name: upload-data
+  type: http
+  seq: 3
+}
+
+put {
+  url: https://nikkiblob.blob.core.windows.net/test-bucket/dnaveed2005.cpp?sv=2025-05-05&se=2025-03-25T23%3A01%3A27Z&sr=c&sp=c&sig=QgvPqDFw43rEuiKS5dOhc4fGpinuinZmXqtEQjm%2FoKg%3D
+  body: multipartForm
+  auth: none
+}
+
+params:query {
+  sv: 2025-05-05
+  se: 2025-03-25T23:01:27Z
+  sr: c
+  sp: c
+  sig: QgvPqDFw43rEuiKS5dOhc4fGpinuinZmXqtEQjm/oKg=
+}
+
+body:multipart-form {
+  : @file(/home/nikki/Downloads/submissions/cpp_sub/dnaveed2005.cpp)
+}

@@ -1,0 +1,19 @@
+meta {
+  name: presignedurl
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/api/video/presignedurl
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "test":"testtttttt",
+    "key":"the-file-name.mp4",
+    "bucketName":"test-bucket"
+  }
+}

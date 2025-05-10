@@ -1,0 +1,309 @@
+{
+  "success": true,
+  "msg": "Plan fetched successfully",
+  "data": {
+    "_id": "67c6d4ee4a0ac6e1ed245aa1",
+    "questionareId": {
+      "_id": "67c6d4ee4a0ac6e1ed245aa0",
+      "userId": "67c62de08cf8b8ea39c3eaff",
+      "slug": "haku",
+      "difficulty": "Medium",
+      "category": "Scenario based",
+      "country": "Canada",
+      "ctc": "30L-40L",
+      "companyName": "Persistent Systems",
+      "yoe": "2-5",
+      "role": "Data Engineer-2",
+      "challenges": "i dont know indexing",
+      "planId": "67c6d4ee4a0ac6e1ed245aa1",
+      "noOfWeeks": 3,
+      "noOfHoursPerWeek": 4,
+      "createdAt": "2025-03-04T10:24:46.382Z",
+      "updatedAt": "2025-03-04T10:24:46.382Z",
+      "__v": 0
+    },
+    "idxs": [
+      246, 29, 72, 156, 171, 251, 177, 107, 151, 0, 252, 207, 78, 249, 185, 22,
+      236, 211, 143, 141, 26, 41, 43, 250, 231
+    ],
+    "roadmap": "[[\"Relational Database Basics\",\"SQL Syntax Fundamentals\",\"Data Types & Constraints\",\"Database Normalization\",\"ACID Properties\"],[\"Single-table Operations\",\"Basic Joins (Inner/Left)\",\"Simple Aggregations\",\"ETL Pattern Introduction\",\"Incremental Loads\"],[\"Complex Joins (Right/Full/Cross)\",\"Subqueries\",\"CTE vs Temp Tables\",\"CDC Patterns\",\"Query Caching\"],[\"Window Functions\",\"Query Optimization Basics\",\"Indexing 101\",\"Cost-Based Optimization\"],[\"Execution Plan Analysis\",\"Partitioning Strategies\",\"ETL Pattern Implementation\",\"Bulk Operations\",\"Partition Pruning\"],[\"Advanced Indexing\",\"Query Profiling\",\"Cloud SQL Integration\",\"Star Schema Design\",\"Materialized Views\"],[\"Cost-Based Optimization\",\"Cloud SQL Best Practices\",\"Query Logging\",\"Database Maintenance\",\"Company-Specific Patterns\"]]",
+    "createdAt": "2025-03-04T10:25:12.489Z"
+  },
+  "questions": [
+    {
+      "text": "1.What is normalization, and how do you perform normalization up to the 3rd Normal Form (3NF)?\n2.What is the difference between primary keys and foreign keys in relational databases?\n3. How would you design a database schema for an e-commerce system to store product, order, and customer information?",
+      "summary": "DE theory",
+      "difficulty": "Medium",
+      "category": "theoretical",
+      "country": "India",
+      "ctc": "10L-20L",
+      "companyName": "Wipro",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "table:customer\n--emp_no\n--emp_name\n--salary\n--dep\n\nwrite a query to get department with at least 5 employee and salary in greater than 10000\n\nin both SQL and pyspark",
+      "summary": "Department details",
+      "difficulty": "Easy",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "5L-10L",
+      "companyName": "Aays Analytics",
+      "yoe": "<2",
+      "role": "Data Engineer-1"
+    },
+    {
+      "text": "Given a table named Sales:\nSaleID\tProductID\tSaleAmount\tSaleDate\n1\t101\t500\t2024-10-01\n2\t102\t300\t2024-10-02\n3\t101\t400\t2024-10-03\n4\t103\t600\t2024-10-04\nAnd a table named Products:\nProductID\tProductName\tCategory\n101\tLaptop\tElectronics\n102\tPhone\tElectronics\n103\tChair\tFurniture\nWrite a query to calculate total sales for each product category.\nIdentify the product with the highest sales amount.",
+      "summary": "Highest sales in product",
+      "difficulty": "Hard",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "20L-30L",
+      "companyName": "Aidetic",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "Write a pyspark code\n1. read csv file\n2. Do deduplication\n3. Create new column age_category on given condition\n4. write the final dataframe as a delta table and partition it on age_caegory.",
+      "summary": "Pysarpk CSV operations",
+      "difficulty": "Hard",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "20L-30L",
+      "companyName": "CitiusTech",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "\"Give me the count of records for inner join,left join,right join and full outer join for the below 2 tables.\n\ntable A\nid1\n1\n1\n2\n2\n \ntable B\n \nid1\n1\n1\n1\n4\n2\"",
+      "summary": "SQL Joins",
+      "difficulty": "Easy",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "10L-20L",
+      "companyName": "LandMark Group",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "sql question on populationstatistics table\nwhere we have population and we have to partition by city into male and female population under age 30 in bq (table not provided) we have to assume the data (city,age,gender,population are given as columns)",
+      "summary": "Population Statistics",
+      "difficulty": "Medium",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "10L-20L",
+      "companyName": "Impetus",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "1. What are the optimization Techniques you used in your project? How would you identify skew join and steps you will take to solve it?\n\nAns: Cache, Checkpointing, Repartition to distribute data even across partition. Avoiding UDFs if spark has inbuilt operation to handle it. To check data skewness - use spark ui metrics",
+      "summary": "Spark optimization techniques",
+      "difficulty": "Medium",
+      "category": "project based",
+      "country": "India",
+      "ctc": "10L-20L",
+      "companyName": "Cognizant",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "we have susbscriptions table with subid,tansactionid,duration in the out the duration should be concated as a single value for the respective subid.",
+      "summary": "combine subscriptions",
+      "difficulty": "Medium",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "20L-30L",
+      "companyName": "Mcafee",
+      "yoe": "8-12",
+      "role": "Lead Data Engineer"
+    },
+    {
+      "text": "Find the customer who purchased items from all category using SQL & pysaprk\nCustomer - name , cat_id\nCategory - cat_id, pur_id\npurchase - purchase_id,cat_id",
+      "summary": "All items purchase",
+      "difficulty": "Medium",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "5L-10L",
+      "companyName": "Deloitte",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "Let's say you have a partitioned table, where one of the partition has huge amount of data and it is getting stuck. how do you handle this situation and what measures do you take?",
+      "summary": "Spark partitions",
+      "difficulty": "Medium",
+      "category": "scenario based",
+      "country": "India",
+      "ctc": "40L-50L",
+      "companyName": "Oportun",
+      "yoe": "5-8",
+      "role": "Senior Data Engineer"
+    },
+    {
+      "text": "Can we partition by string in bigquery?",
+      "summary": "Parition by string",
+      "difficulty": "Medium",
+      "category": "scenario based",
+      "country": "India",
+      "ctc": "10L-20L",
+      "companyName": "Impetus",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "you have 2 tables employees and department.\nEmployee has following columns: employee_id (Primary Key),name,department_id,salary\nDepartment has following column : department_id (Primary Key),department_name\nWrite an SQL query to find the second highest salary in each department.",
+      "summary": "Second highest salary",
+      "difficulty": "Medium",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "10L-20L",
+      "companyName": "Cognizant",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "What is difference betweem hive internal and external table?\nWhy Spark is faster than MP?\nWhat is repartition in Spark?",
+      "summary": "Spark theory",
+      "difficulty": "Easy",
+      "category": "theoretical",
+      "country": "India",
+      "ctc": "10L-20L",
+      "companyName": "Tiger Analytics",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "Write a query to find all the employees who draw more salary than their respective department's average salary\n\nId     Name          Dept ID   Dept Name   Salary\n1      Alex             02             Finance           20000\n2      Bob              01             Marketing      17500\n3     Carlson        02             Finance            28000\n4     David            03             HR                     15000\n5     Elizabeth     02             Finance            22000\n6     Felix              01             Marketing       30000\n7     Griffith         01             Marketing       26000\n8    Harley            03            HR                     19000\n9    Jaden            03             HR                     15000",
+      "summary": "Employees drawing more salary",
+      "difficulty": "Easy",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "10L-20L",
+      "companyName": "Neenopal",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "explain bigquery architecture",
+      "summary": "Bigquery architecture",
+      "difficulty": "Medium",
+      "category": "theoretical",
+      "country": "India",
+      "ctc": "10L-20L",
+      "companyName": "Random trees pvt ltd",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "Write a query to show customer_id for the customers that did not have any orders in 2023 from the customers table.",
+      "summary": "Customer Orders",
+      "difficulty": "Medium",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "10L-20L",
+      "companyName": "Accenture",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "Write python/pyspark code to ingest the data(20GB) which has integer data. Load the data into another source in ascending format",
+      "summary": "Data load in ascending order",
+      "difficulty": "Medium",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "20L-30L",
+      "companyName": "scientist technologies",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "Optimizing Joins in PySpark\n\nYou have two large datasets:\n\norders (100M rows) with columns: order_id, customer_id, order_date, amount.\ncustomers (10M rows) with columns: customer_id, name, email.\nYou need to join them efficiently to get the total amount spent by each customer.\n\n1. What type of join strategy would you use?\n2. How would you optimize performance for large-scale joins in PySpark?\n3. How would broadcast joins help, and when should they be avoided?",
+      "summary": "Join optimizations",
+      "difficulty": "Medium",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "30L-40L",
+      "companyName": "Goldman Sachs Group",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "Write a function to locate the left insertion point for a specified value in sorted order.",
+      "summary": "Left insertion point",
+      "difficulty": "Hard",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "20L-30L",
+      "companyName": "Creditsafe Technology",
+      "yoe": "5-8",
+      "role": "Senior Data Engineer"
+    },
+    {
+      "text": "Write an SQL query to create an empty table with the same structure as some other table.",
+      "summary": "SQL table structure",
+      "difficulty": "Medium",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "20L-30L",
+      "companyName": "LTIMindtree",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "How would you automate the process of adding new columns into databricks notebook without manually changing it on Databricks notebook?",
+      "summary": "Column addition",
+      "difficulty": "Medium",
+      "category": "project based",
+      "country": "India",
+      "ctc": "10L-20L",
+      "companyName": "Kantar",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "There are several csv files are present in HDFS folder with state names like bihar.csv, kerala.csv etc.\nWrite a pyspark program where you have to add one more column with column name as \"State\" in each csv file and data of \"State\" column should be the filename.",
+      "summary": "Display the states based on filename",
+      "difficulty": "Medium",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "5L-10L",
+      "companyName": "LTIMindtree",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "We have applied partition in a hive table. But when we are quering the data on that partition, data is not coming/showing. How you will resolve this issue so that I can see the data?",
+      "summary": "Data is not visible",
+      "difficulty": "Medium",
+      "category": "scenario based",
+      "country": "India",
+      "ctc": "5L-10L",
+      "companyName": "LTIMindtree",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "explain about wildcards in bigquery",
+      "summary": "wildcards in bigquery",
+      "difficulty": "Medium",
+      "category": "theoretical",
+      "country": "India",
+      "ctc": "10L-20L",
+      "companyName": "Impetus",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    },
+    {
+      "text": "SQL Question\nGiven the reviews table, write a query to retrieve the average star rating for each product, grouped by month. The output should display the month as a numerical value, product ID, and average star rating rounded to two decimal places. Sort the output first by month and then by product ID.\n\nreviews table - review_id, user_id, product_id, review_date, stars\nWas also asked to write the solution in Pyspark as well.",
+      "summary": "Average product rating",
+      "difficulty": "Easy",
+      "category": "problem solving",
+      "country": "India",
+      "ctc": "10L-20L",
+      "companyName": "Elanco",
+      "yoe": "2-5",
+      "role": "Data Engineer-2"
+    }
+  ]
+}
