@@ -16,25 +16,13 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v4
 
-      - name: test 1
-        run: ls && cd transcoder && ls
-
-      - name: go to transcoder dir
-        run: cd transcoder
-
-      - name: test 2
-        run: ls 
-
       - name: install go
         uses: actions/setup-go@v5
         with:
           go-version: 'stable'
 
-      - name: build go app 1
-        run: go build -ldflags="-s -w" -buildvcs=false -o transcoder . || true
-
       - name: build go app 2
-        run: go build -ldflags="-s -w" -buildvcs=false -o transcoder ./transcoder || true
+        run: go build -ldflags="-s -w" -buildvcs=false -o transcoder ./transcoder
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -51,6 +39,6 @@ jobs:
   
       - name: Build and push
         run: |
-            docker login || true
+            cd transcoder   # working dir not persisted
             docker build -t nikhilesh002/mooz-transcoder:latest .
             docker push nikhilesh002/mooz-transcoder:latest
