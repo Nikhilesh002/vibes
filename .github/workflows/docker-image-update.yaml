@@ -1,0 +1,50 @@
+name: "Rebuild image and push to dockerhub"
+
+on:
+  push:
+    branches: 
+      - main
+    paths:
+      - 'transcoder/**'
+
+jobs:
+  cicd:
+    name: build app
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: see dirs
+        run: ls -a
+
+      - name: go to transcoder dir
+        run: cd transcoder
+
+      - name: install go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: build go app
+        run: go build -ldflags="-s -w" -o transcoder .
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PAT }}
+
+      # - name: Build image
+      #   run: docker build -t nikhilesh002/mooz-transcoder .
+      
+      # - name: push to dockerhub
+      #   run: docker push nikhilesh002/mooz-transcoder
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: nikhilesh002/mooz-transcoder:latest
+
