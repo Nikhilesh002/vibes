@@ -11,15 +11,13 @@ jobs:
   cicd:
     name: build app
     runs-on: ubuntu-latest
+
     steps:
       - name: checkout code
         uses: actions/checkout@v4
 
-      - name: see dirs
-        run: ls -a
-
       - name: go to transcoder dir
-        run: cd transcoder
+        run: ls && cd transcoder && ls 
 
       - name: install go
         uses: actions/setup-go@v5
@@ -35,16 +33,15 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PAT }}
 
-      # - name: Build image
-      #   run: docker build -t nikhilesh002/mooz-transcoder .
-      
-      # - name: push to dockerhub
-      #   run: docker push nikhilesh002/mooz-transcoder
-
+      # - name: Build and push
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     context: .
+      #     push: true
+      #     tags: nikhilesh002/mooz-transcoder:latest
+  
       - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: nikhilesh002/mooz-transcoder:latest
-
+        run: |
+            docker login || true
+            docker build -t nikhilesh002/mooz-transcoder:latest .
+            docker push nikhilesh002/mooz-transcoder:latest
