@@ -19,7 +19,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 
 
-FROM scratch AS runner
+FROM jrottenberg/ffmpeg:snapshot-scratch AS runner
 
 COPY --from=builder /build/transcoder /
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
