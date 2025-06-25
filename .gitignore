@@ -5,3 +5,14 @@
 **/*.env*
 transcoder/temp
 transcoder/transcoded
+
+# Azure Functions artifacts
+start-transcoding/bin
+start-transcoding/obj
+start-transcoding/appsettings.json
+start-transcoding/local.settings.json
+
+# Azurite artifacts
+start-transcoding/__blobstorage__
+start-transcoding/__queuestorage__
+start-transcoding/__azurite_db*__.json

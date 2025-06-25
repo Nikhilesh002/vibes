@@ -11,7 +11,8 @@ import Videos from "./pages/Videos";
 
 function App() {
   return (
-    <Providers>
+    <div className="text-black bg-white dark:text-white dark:bg-black">
+      <Providers>
       <Toaster position="bottom-right" toastOptions={{ duration: 2000 }} />
       <BrowserRouter>
         <NavBar />
@@ -27,6 +28,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </Providers>
+    </div>
   );
 }
 
