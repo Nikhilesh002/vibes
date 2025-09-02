@@ -1,17 +1,17 @@
-export interface IQuestion {
-  text: string;
-  summary: string;
-  difficulty: string;
-  category: string;
-  country: string;
-  ctc: string;
-  companyName: string;
-  yoe: string;
-  role: string;
+export interface IUploadVideoForm {
+  title: string;
+  description: string;
+  tags: string[];
 }
 
-export interface IPlanQues {
-  questions: IQuestion[];
-  queStatus: number[];
-  queIdxs: number[];
+export interface IVideo extends IUploadVideoForm {
+  _id: string;
+  blobName: string;
+  tempUrl: string;
+  status: 'IN_QUEUE' | 'DONE' | 'PENDING';
+  logs: string;
+  transcodedVideoUrl: string;
+  thumbnailImage: string;
+  completedAt: number;
+  userId: string;
 }

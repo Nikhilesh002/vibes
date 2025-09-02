@@ -1,10 +1,16 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IVideoJob {
-  url: string;
+  tempUrl: string;
   blobName: string;
-  status: "IN_QUEUE" | "DONE" | "PENDING";
-  completedAt: Number;
+  status: 'IN_QUEUE' | 'DONE' | 'PENDING';
+  logs: string;
+  tags: string[];
+  description: string;
+  transcodedVideoUrl: string;
+  thumbnailImage: string;
+  title: string;
+  completedAt: number;
   userId: Schema.Types.ObjectId;
 }
 
@@ -14,23 +20,24 @@ const videoJobSchema = new mongoose.Schema(
   {
     tempUrl: { type: String, required: true, unique: true, index: true },
     blobName: { type: String, required: true, index: true },
-    status: { type: String, required: true, default: "PENDING" },
-    logs: { type: String, default: "" },
+    status: { type: String, required: true, default: 'PENDING' },
+    logs: { type: String, default: '' },
     tags: [{ type: String, default: [] }],
-    description: { type: String, default: "" },
-    title: { type: String, default: "" },
+    description: { type: String, default: '' },
+    thumbnailImage: { type: String, default: '' },
+    title: { type: String, default: '' },
     completedAt: { type: Date },
     userId: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
       index: true,
     },
-    transcodedVideoUrl: { type: String, default: "" },
+    transcodedVideoUrl: { type: String, default: '' },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-export const VideoJobModel = mongoose.model("VideoJob", videoJobSchema);
+export const VideoJobModel = mongoose.model('VideoJob', videoJobSchema);

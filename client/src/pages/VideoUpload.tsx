@@ -1,32 +1,30 @@
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { axiosWithToken } from "@/lib/axiosWithToken";
-import { buildBlobName } from "@/utils/azureBlob/buildBlobName";
-import { getBlobSASClient } from "@/utils/azureBlob/client";
-import { ChangeEvent, FormEvent, useState } from "react";
-import toast from "react-hot-toast";
-
-interface IVideoData {
-  title: string;
-  description: string;
-  tags: string[];
-}
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { axiosWithToken } from '@/lib/axiosWithToken';
+import { IUploadVideoForm } from '@/lib/types';
+import { buildBlobName } from '@/utils/azureBlob/buildBlobName';
+import { getBlobSASClient } from '@/utils/azureBlob/client';
+import { ChangeEvent, FormEvent, useState } from 'react';
+import toast from 'react-hot-toast';
 
 function VideoUpload() {
   const [videos, setVideos] = useState<FileList | null>(null);
-  const [videoData, setVideoData] = useState<IVideoData>({
-    title: "",
-    description: "",
+  const [thumbnail, setThumbnail] = useState<FileList | null>(null);
+  const [videoData, setVideoData] = useState<IUploadVideoForm>({
+    title: '',
+    description: '',
     tags: [],
   });
+
+  // TODO: upload thumbnail like videos on upload, then store thumbnail URL
 
   const handleUpload = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!videos || videos.length === 0) {
-      toast.error("Select videos");
+      toast.error('Select videos');
       return;
     }
 
@@ -34,23 +32,23 @@ function VideoUpload() {
     const blobName = buildBlobName(blob);
 
     if (blob.size > 30 * 1024 * 1024) {
-      toast.error("Max video size can be 30MB");
+      toast.error('Max video size can be 30MB');
       return;
     }
 
     const supportedFormats = [
-      "video/mp4",
-      "video/x-msvideo", // AVI
-      "video/x-flv", // FLV
-      "video/x-matroska", // MKV
-      "video/ogg", // OGV
-      "video/webm", // WEBM
-      "video/3gpp", // 3GP
-      "video/3gpp2", // 3G2
+      'video/mp4',
+      'video/x-msvideo', // AVI
+      'video/x-flv', // FLV
+      'video/x-matroska', // MKV
+      'video/ogg', // OGV
+      'video/webm', // WEBM
+      'video/3gpp', // 3GP
+      'video/3gpp2', // 3G2
     ];
 
     if (!supportedFormats.includes(blob.type)) {
-      toast.error("Unsupported video file");
+      toast.error('Unsupported video file');
       return;
     }
 
@@ -61,12 +59,12 @@ function VideoUpload() {
         {
           key: blobName,
           ...videoData,
-        }
+        },
       );
 
       const { url, sasKey, success, videoJobId } = resp.data;
       if (!success || !url) {
-        toast.error("Failed to get pre-signed URL");
+        toast.error('Failed to get pre-signed URL');
         return;
       }
       console.log({ url: `${url}?${sasKey}` });
@@ -77,12 +75,11 @@ function VideoUpload() {
       console.log({ resp2 });
 
       if (resp2.errorCode) {
-        toast.error("Video upload failed.");
+        toast.error('Video upload failed.');
         return;
       }
 
-      toast.success("Video uploaded successfully!");
-      // setVideos(null);
+      toast.success('Video uploaded successfully!');
 
       // add to transcoding queue
       const resp3 = await axiosWithToken.post(
@@ -90,20 +87,21 @@ function VideoUpload() {
         {
           videoUrl: url,
           videoJobId,
-        }
+        },
       );
 
       const { success: success3 } = resp3.data;
 
       if (!success3) {
-        toast.error("Failed to transcode");
+        toast.error('Failed to transcode');
         return;
       }
 
-      toast.success("Transcoding started...");
+      setVideos(null);
+      toast.success('Transcoding started...');
     } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("An error occurred during upload.");
+      console.error('Upload error:', error);
+      toast.error('An error occurred during upload.');
     }
   };
 
@@ -111,15 +109,25 @@ function VideoUpload() {
     e.preventDefault();
 
     if (!e.target.files || e.target.files.length === 0) {
-      toast.error("Select files!!");
+      toast.error('Select files!!');
       return;
     }
     setVideos(e.target.files);
   };
 
+  const handleThumbnailChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+
+    if (!e.target.files || e.target.files.length === 0) {
+      toast.error('Select files!!');
+      return;
+    }
+    setThumbnail(e.target.files);
+  };
+
   return (
     <div className="w-full h-screen flex justify-center  ">
-      <div className="w-80 h-40 mt-60">
+      <div className="w-96 h-40 mt-40">
         <Card className="p-5">
           <form className="text-center space-y-3" onSubmit={handleUpload}>
             <h1 className="font-bold text-2xl">Upload video</h1>
@@ -153,17 +161,27 @@ function VideoUpload() {
                 onChange={(e) =>
                   setVideoData({
                     ...videoData,
-                    tags: e.target.value.split(","),
+                    tags: e.target.value.split(','),
                   })
                 }
               />
             </div>
 
             <div className="">
-              <Label htmlFor="video-upload">Choose File: </Label>
+              <Label htmlFor="video-upload">Choose Video: </Label>
               <Input
                 id="video-upload"
                 onChange={handleVideoChange}
+                className="my-3"
+                type="file"
+              />
+            </div>
+
+            <div className="">
+              <Label htmlFor="thumbnail-upload">Choose Thumbnail: </Label>
+              <Input
+                id="thumbnail-upload"
+                onChange={handleThumbnailChange}
                 className="my-3"
                 type="file"
               />
