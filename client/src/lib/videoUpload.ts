@@ -43,10 +43,10 @@ export const uploadData = async (
   console.log({ thumbnail: `${thumbnailUrl}?${thumbnailSasKey}` });
 
   // upload video, thmbnail to azure
-  //   await Promise.all([
-  //     uploadToAzure(videoUrl, videoSasKey, video),
-  //     uploadToAzure(thumbnailImageUrl, thumbnailImageSasKey, thumbnail),
-  //   ]);
+  await Promise.all([
+    uploadToAzure(videoUrl, videoSasKey, video),
+    uploadToAzure(thumbnailUrl, thumbnailSasKey, thumbnail),
+  ]);
 
   toast.success('Video uploaded successfully!');
 

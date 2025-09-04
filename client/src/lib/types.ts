@@ -11,7 +11,7 @@ export interface IVideo extends IUploadVideoForm {
   status: 'IN_QUEUE' | 'DONE' | 'PENDING';
   logs: string;
   transcodedVideoUrl: string;
-  thumbnailImage: string;
+  thumbnailUrl: string;
   completedAt: number;
   userId: string;
 }

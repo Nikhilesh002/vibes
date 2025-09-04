@@ -28,6 +28,7 @@ export const VideoJS = (props: any) => {
 
       player.autoplay(options.autoplay);
       player.src(options.sources);
+      player.poster(options.poster);
     }
   }, [options, videoRef]);
 

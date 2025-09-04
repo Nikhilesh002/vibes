@@ -68,6 +68,7 @@ function Videos() {
                 options={{
                   ...videoJsOptions,
                   sources: video.transcodedVideoUrl,
+                  poster: video.thumbnailUrl,
                 }}
                 onReady={handlePlayerReady}
               />

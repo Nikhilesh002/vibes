@@ -18,7 +18,7 @@ export interface IVideoJobDoc extends IVideoJob, Document {}
 
 const videoJobSchema = new mongoose.Schema(
   {
-    tempUrl: { type: String, required: true, unique: true, index: true },
+    tempUrl: { type: String, required: true, index: true },
     blobName: { type: String, required: true, index: true },
     status: { type: String, required: true, default: 'PENDING' },
     logs: { type: String, default: '' },

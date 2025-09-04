@@ -20,6 +20,8 @@ export async function preSignedUrl(req: Request, res: Response): Promise<any> {
       thumbnailKey,
     );
 
+    console.log({ videoUrl, videoSasKey, thumbnailUrl, thumbnailSasKey });
+
     // store url in db
     const resp = await VideoJobModel.create({
       blobName: videoKey,
