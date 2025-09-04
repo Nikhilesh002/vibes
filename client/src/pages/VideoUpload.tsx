@@ -2,16 +2,14 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { axiosWithToken } from '@/lib/axiosWithToken';
 import { IUploadVideoForm } from '@/lib/types';
-import { buildBlobName } from '@/utils/azureBlob/buildBlobName';
-import { getBlobSASClient } from '@/utils/azureBlob/client';
+import { uploadData } from '@/lib/videoUpload';
 import { ChangeEvent, FormEvent, useState } from 'react';
 import toast from 'react-hot-toast';
 
 function VideoUpload() {
-  const [videos, setVideos] = useState<FileList | null>(null);
-  const [thumbnail, setThumbnail] = useState<FileList | null>(null);
+  const [video, setVideo] = useState<File | null>(null);
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [videoData, setVideoData] = useState<IUploadVideoForm>({
     title: '',
     description: '',
@@ -23,81 +21,16 @@ function VideoUpload() {
   const handleUpload = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!videos || videos.length === 0) {
-      toast.error('Select videos');
-      return;
-    }
-
-    const blob = videos[0];
-    const blobName = buildBlobName(blob);
-
-    if (blob.size > 30 * 1024 * 1024) {
-      toast.error('Max video size can be 30MB');
-      return;
-    }
-
-    const supportedFormats = [
-      'video/mp4',
-      'video/x-msvideo', // AVI
-      'video/x-flv', // FLV
-      'video/x-matroska', // MKV
-      'video/ogg', // OGV
-      'video/webm', // WEBM
-      'video/3gpp', // 3GP
-      'video/3gpp2', // 3G2
-    ];
-
-    if (!supportedFormats.includes(blob.type)) {
-      toast.error('Unsupported video file');
+    if (!video || !thumbnail) {
+      toast.error('Select files!!');
       return;
     }
 
     try {
-      // req presigned URL
-      const resp = await axiosWithToken.post(
-        `${import.meta.env.VITE_API_URL}/video/presignedurl`,
-        {
-          key: blobName,
-          ...videoData,
-        },
-      );
+      await uploadData(video, videoData, thumbnail);
 
-      const { url, sasKey, success, videoJobId } = resp.data;
-      if (!success || !url) {
-        toast.error('Failed to get pre-signed URL');
-        return;
-      }
-      console.log({ url: `${url}?${sasKey}` });
-
-      const sasClient = getBlobSASClient(`${url}?${sasKey}`);
-      const resp2 = await sasClient.uploadData(blob);
-
-      console.log({ resp2 });
-
-      if (resp2.errorCode) {
-        toast.error('Video upload failed.');
-        return;
-      }
-
-      toast.success('Video uploaded successfully!');
-
-      // add to transcoding queue
-      const resp3 = await axiosWithToken.post(
-        `${import.meta.env.VITE_API_URL}/video/transcode`,
-        {
-          videoUrl: url,
-          videoJobId,
-        },
-      );
-
-      const { success: success3 } = resp3.data;
-
-      if (!success3) {
-        toast.error('Failed to transcode');
-        return;
-      }
-
-      setVideos(null);
+      setVideo(null);
+      setThumbnail(null);
       toast.success('Transcoding started...');
     } catch (error) {
       console.error('Upload error:', error);
@@ -112,7 +45,7 @@ function VideoUpload() {
       toast.error('Select files!!');
       return;
     }
-    setVideos(e.target.files);
+    setVideo(e.target.files[0]);
   };
 
   const handleThumbnailChange = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -122,7 +55,7 @@ function VideoUpload() {
       toast.error('Select files!!');
       return;
     }
-    setThumbnail(e.target.files);
+    setThumbnail(e.target.files[0]);
   };
 
   return (

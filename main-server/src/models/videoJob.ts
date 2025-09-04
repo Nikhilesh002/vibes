@@ -3,12 +3,12 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IVideoJob {
   tempUrl: string;
   blobName: string;
-  status: 'IN_QUEUE' | 'DONE' | 'PENDING';
+  status: 'IN_QUEUE' | 'DONE' | 'PENDING' | 'FAILED';
   logs: string;
   tags: string[];
   description: string;
   transcodedVideoUrl: string;
-  thumbnailImage: string;
+  thumbnailUrl: string;
   title: string;
   completedAt: number;
   userId: Schema.Types.ObjectId;
@@ -24,7 +24,7 @@ const videoJobSchema = new mongoose.Schema(
     logs: { type: String, default: '' },
     tags: [{ type: String, default: [] }],
     description: { type: String, default: '' },
-    thumbnailImage: { type: String, default: '' },
+    thumbnailUrl: { type: String, default: '' },
     title: { type: String, default: '' },
     completedAt: { type: Date },
     userId: {
