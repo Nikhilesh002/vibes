@@ -16,3 +16,4 @@ start-transcoding/local.settings.json
 start-transcoding/__blobstorage__
 start-transcoding/__queuestorage__
 start-transcoding/__azurite_db*__.json
+.vscode
