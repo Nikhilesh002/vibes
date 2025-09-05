@@ -16,7 +16,7 @@ export async function preSignedUrl(req: Request, res: Response): Promise<any> {
       videoKey,
     );
     const { url: thumbnailUrl, sasKey: thumbnailSasKey } = makePresignedUrl(
-      'tempbucket',
+      'thumbnail',
       thumbnailKey,
     );
 
@@ -48,7 +48,7 @@ export async function preSignedUrl(req: Request, res: Response): Promise<any> {
       videoSasKey,
       thumbnailUrl,
       thumbnailSasKey,
-      videoJobId: resp._id,
+      videoId: resp._id,
     });
   } catch (error) {
     console.error('Error creating signed URL', error);

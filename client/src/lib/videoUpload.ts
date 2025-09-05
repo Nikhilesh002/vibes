@@ -33,7 +33,7 @@ export const uploadData = async (
     thumbnailUrl,
     thumbnailSasKey,
     success,
-    // videoJobId,
+    videoId,
   } = resp.data;
   if (!success) {
     toast.error('Failed to get pre-signed URLs');
@@ -44,33 +44,23 @@ export const uploadData = async (
 
   // upload video, thmbnail to azure
   await Promise.all([
-    uploadToAzure(videoUrl, videoSasKey, video),
-    uploadToAzure(thumbnailUrl, thumbnailSasKey, thumbnail),
+    uploadToAzure(videoUrl, videoSasKey, video, { videoId }),
+    uploadToAzure(thumbnailUrl, thumbnailSasKey, thumbnail, { videoId }),
   ]);
 
   toast.success('Video uploaded successfully!');
-
-  // TODO: use az funcs to start ACI on blob upload on that container instead of this manual step
-  //   // add to transcoding queue
-  //   const resp3 = await axiosWithToken.post(
-  //     `${import.meta.env.VITE_API_URL}/video/transcode`,
-  //     {
-  //       videoUrl: videoUrl,
-  //       videoJobId,
-  //     },
-  //   );
-
-  //   const { success: success3 } = resp3.data;
-
-  //   if (!success3) {
-  //     toast.error('Failed to transcode');
-  //     return;
-  //   }
 };
 
-const uploadToAzure = async (url: string, sasKey: string, blob: File) => {
+const uploadToAzure = async (
+  url: string,
+  sasKey: string,
+  blob: File,
+  metadata: any,
+) => {
   const sasClient = getBlobSASClient(`${url}?${sasKey}`);
-  const resp2 = await sasClient.uploadData(blob);
+  const resp2 = await sasClient.uploadData(blob, {
+    metadata,
+  });
 
   console.log({ resp2 });
 
