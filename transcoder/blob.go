@@ -16,7 +16,7 @@ func uploadFolder(azPermaBlobClient *azblob.Client, destContainerName string, di
 		go func() {
 			defer uploadWg.Done()
 
-			if content.Type().IsDir() == true {
+			if content.Type().IsDir() {
 				log.Println("sub dir: ", foldername+"/"+content.Name())
 				subDirContents, err := os.ReadDir(foldername + "/" + content.Name())
 				if err != nil {
@@ -27,6 +27,10 @@ func uploadFolder(azPermaBlobClient *azblob.Client, destContainerName string, di
 				log.Println("Uploading: ", foldername+"/"+content.Name())
 
 				file, err := os.OpenFile(foldername+"/"+content.Name(), os.O_RDONLY, 0)
+				if err != nil {
+					addLog("Failed to open file: "+content.Name(), allLogs)
+					panic(err)
+				}
 				defer file.Close()
 
 				_, err = azPermaBlobClient.UploadFile(context.TODO(), destContainerName, foldername+"/"+content.Name(), file, nil)
