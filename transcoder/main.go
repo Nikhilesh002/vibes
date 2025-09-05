@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerinstance/armcontainerinstance"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
-	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -40,39 +39,27 @@ func main() {
 	srcContainerName := getSrcContainerName(myEnvs.srcBlobUrl)
 	blobName := getBlobName(myEnvs.srcBlobUrl, srcContainerName)
 
-	// redis client
-	opts, err := redis.ParseURL(myEnvs.redisUri)
-	if err != nil {
-		panic(err)
-	}
-	rdb := redis.NewClient(opts)
-
 	// az auth
 	azCredential, err := azidentity.NewDefaultAzureCredential(nil)
+	if err != nil {
+		addLog("Failed to create az credential", &allLogs)
+		panic(err)
+	}
 
 	// 5. execute at last
 	defer func() {
-		// add job done in redis q
-		addLog("Added to queue: VIDEO_TRANSCODING_DONE: DONE", &allLogs)
-		rdb.LPush(context.Background(), "VIDEO_TRANSCODING_DONE", "DONE")
-
-		// no-race decr count
-		rdb.Decr(context.Background(), "VIDEO_TRANSCODING_JOBS_COUNT")
-		luaScript := `
-			local current = tonumber(redis.call("GET", KEYS[1]) or "0")
-			if current > 0 then
-				redis.call("DECR", KEYS[1])
-				return 1
-			else
-				return 0
-			end
-		`
-		rdb.Eval(context.Background(), luaScript, []string{"VIDEO_TRANSCODING_JOBS_COUNT"})
-
 		// kill container grp
 		ctx := context.Background()
 		azContainerClient, err := armcontainerinstance.NewContainerGroupsClient(myEnvs.subscriptionId, azCredential, nil)
+		if err != nil {
+			addLog("Failed to create container client", &allLogs)
+			panic(err)
+		}
 		poller, err := azContainerClient.BeginDelete(ctx, myEnvs.resourceGroupName, myEnvs.containerGroupName, nil)
+		if err != nil {
+			addLog("Failed to delete container group", &allLogs)
+			panic(err)
+		}
 		res2, err := poller.PollUntilDone(ctx, nil)
 		if err != nil {
 			log.Fatalf("failed to pull the result: %v", err)

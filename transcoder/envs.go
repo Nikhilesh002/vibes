@@ -12,7 +12,6 @@ type MyEnvStruct struct {
 	subscriptionId     string
 	resourceGroupName  string
 	containerGroupName string
-	redisUri           string
 }
 
 func loadEnvs() (MyEnvStruct, error) {
@@ -26,7 +25,6 @@ func loadEnvs() (MyEnvStruct, error) {
 		subscriptionId:     os.Getenv("CONTAINERINSTANCE_SUBSCRIPTION_ID"),
 		resourceGroupName:  os.Getenv("CONTAINERINSTANCE_RESOURCE_GROUP"),
 		containerGroupName: os.Getenv("CONTAINERINSTANCE_CONTAINER_GROUP_NAME"),
-		redisUri:           os.Getenv("REDIS_URI"),
 	}
 
 	// check for ""s
