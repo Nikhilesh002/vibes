@@ -16,8 +16,6 @@ function VideoUpload() {
     tags: [],
   });
 
-  // TODO: upload thumbnail like videos on upload, then store thumbnail URL
-
   const handleUpload = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 

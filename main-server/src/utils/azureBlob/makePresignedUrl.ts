@@ -6,22 +6,22 @@ import {
 import { extractConnectionStringParts } from './utils';
 import { envs } from '../../configs/index';
 
-export const getPresignedUrl = (url: string) => {
+export const getPresignedUrl = (url: string, permissions: string) => {
   const a = url.split('.blob.core.windows.net/');
   const containerAndBlob = a[1].split('/');
   const containerName = containerAndBlob[0];
   const blobName = containerAndBlob.slice(1).join('/');
 
-  const { url: sameUrl, sasKey } = makePresignedUrl(containerName, blobName);
+  const { url: sameUrl, sasKey } = makePresignedUrl(containerName, blobName, permissions);
 
   return `${sameUrl}?${sasKey}`;
 };
 
-export const makePresignedUrl = (containerName: string, blobName: string) => {
+export const makePresignedUrl = (containerName: string, blobName: string, permissions: string) => {
   const { sasKey, url, accountName } = generateSasToken(
     envs.azureBlobConnStr,
     containerName,
-    'r',
+    permissions,
   );
 
   return {

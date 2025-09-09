@@ -1,11 +1,16 @@
 import { app, InvocationContext } from '@azure/functions';
 import { DefaultAzureCredential } from '@azure/identity';
 import { ContainerInstanceManagementClient } from '@azure/arm-containerinstance';
+import * as dotenv from 'dotenv';
 
-export async function vidmuxStartTranscoding(
+dotenv.config();
+
+export async function moozTranscoding(
   blob: Buffer,
   context: InvocationContext,
 ): Promise<void> {
+  console.log({ env: process.env });
+
   context.log(
     `Storage blob function processed blob "${context.triggerMetadata.name}" with size ${blob.length} bytes`,
   );
@@ -13,7 +18,12 @@ export async function vidmuxStartTranscoding(
 
   const videoMetadata = context.triggerMetadata.metadata as { videoid: string };
 
-  createDockerContainer({
+  console.log({
+    videoUrl: context.triggerMetadata.uri as string,
+    videoJobId: videoMetadata.videoid,
+  });
+
+  await createDockerContainer({
     videoUrl: context.triggerMetadata.uri as string,
     videoJobId: videoMetadata.videoid,
   });
@@ -21,10 +31,10 @@ export async function vidmuxStartTranscoding(
   console.log('Started container for transcoding job');
 }
 
-app.storageBlob('vidmuxStartTranscoding', {
+app.storageBlob('moozTranscoding', {
   path: 'tempbucket/{name}',
-  connection: process.env.AZURE_TEMP_STORAGE_CONNECTION_STRING,
-  handler: vidmuxStartTranscoding,
+  connection: 'AzureWebJobsStorage',
+  handler: moozTranscoding,
 });
 
 interface IProcessJob {
@@ -32,10 +42,10 @@ interface IProcessJob {
   videoJobId: string;
 }
 
-// spawn-> nikhilesh002/vidmux-transcoder:latest
+// spawn-> nikhilesh002/mooz-transcoder:latest
 export async function createDockerContainer(jobData: IProcessJob) {
-  const containerGroupName = `vidmux-transcoder-${Date.now()}`;
-  const imageName = 'docker.io/nikhilesh002/vidmux-transcoder:latest';
+  const containerGroupName = `mooz-transcoder-${Date.now()}`;
+  const imageName = 'docker.io/nikhilesh002/mooz-transcoder:latest';
 
   const containerGroup = {
     confidentialComputeProperties: {
@@ -44,7 +54,7 @@ export async function createDockerContainer(jobData: IProcessJob) {
     },
     containers: [
       {
-        name: 'vidmux-transcoder',
+        name: 'mooz-transcoder',
         image: imageName,
         command: [],
         environmentVariables: [

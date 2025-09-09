@@ -10,12 +10,13 @@
     "prestart": "npm run clean && npm run build",
     "start": "func start",
     "test": "echo \"No tests yet...\"",
-    "local": "npm run build && func start --verbose"
+    "local": "npm run build && func start"
   },
   "dependencies": {
     "@azure/arm-containerinstance": "^9.1.0",
     "@azure/functions": "^4.0.0",
-    "@azure/identity": "^4.11.1"
+    "@azure/identity": "^4.11.1",
+    "dotenv": "^17.2.2"
   },
   "devDependencies": {
     "@types/node": "^18.19.124",

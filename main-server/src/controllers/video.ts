@@ -17,10 +17,12 @@ export async function preSignedUrl(req: Request, res: Response): Promise<any> {
     const { url: videoUrl, sasKey: videoSasKey } = makePresignedUrl(
       'tempbucket',
       videoKey,
+      'c',
     );
     const { url: thumbnailUrl, sasKey: thumbnailSasKey } = makePresignedUrl(
       'thumbnail',
       thumbnailKey,
+      'c',
     );
 
     console.log({ videoUrl, videoSasKey, thumbnailUrl, thumbnailSasKey });
@@ -98,6 +100,9 @@ export const allVideos = async (req: Request, res: Response): Promise<any> => {
   try {
     let user = await UserModel.findOne({ _id: req.userId }).populate({
       path: 'videoJobIds',
+      match: {
+        status: 'DONE',
+      },
     });
     if (!user) {
       console.error('User not found!!');
@@ -107,17 +112,16 @@ export const allVideos = async (req: Request, res: Response): Promise<any> => {
     }
 
     user.videoJobIds.forEach((video: any) => {
-      console.log({ video });
-
       if (!video) return;
       if (video.thumbnailUrl.includes('.blob.core.windows.net/'))
-        video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl);
+        video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl, 'r');
 
-      // if (video.transcodedVideoUrl.includes('.blob.core.windows.net/'))
-      //   video.transcodedVideoUrl = getPresignedUrl(video.transcodedVideoUrl);
+      if (video.transcodedVideoUrl.includes('.blob.core.windows.net/'))
+        video.transcodedVideoUrl = getPresignedUrl(
+          video.transcodedVideoUrl,
+          'r',
+        );
     });
-
-    console.log(user.videoJobIds);
 
     return res.json({
       success: true,
@@ -151,10 +155,10 @@ export const getVideoById = async (
     }
 
     if (video.thumbnailUrl.includes('.blob.core.windows.net/'))
-      video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl);
+      video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl, 'r');
 
     // if (video.transcodedVideoUrl.includes('.blob.core.windows.net/'))
-    //   video.transcodedVideoUrl = getPresignedUrl(video.transcodedVideoUrl);
+    //   video.transcodedVideoUrl = getPresignedUrl(video.transcodedVideoUrl, 'r');
 
     return res.json({
       success: true,
