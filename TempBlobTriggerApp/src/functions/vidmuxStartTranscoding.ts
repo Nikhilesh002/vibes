@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-export async function moozTranscoding(
+export async function startTranscoding(
   blob: Buffer,
   context: InvocationContext,
 ): Promise<void> {
@@ -31,10 +31,10 @@ export async function moozTranscoding(
   console.log('Started container for transcoding job');
 }
 
-app.storageBlob('moozTranscoding', {
+app.storageBlob('startTranscoding', {
   path: 'tempbucket/{name}',
   connection: 'AzureWebJobsStorage',
-  handler: moozTranscoding,
+  handler: startTranscoding,
 });
 
 interface IProcessJob {
@@ -42,10 +42,10 @@ interface IProcessJob {
   videoJobId: string;
 }
 
-// spawn-> nikhilesh002/mooz-transcoder:latest
+// spawn-> nikhilesh002/vibes-transcoder:latest
 export async function createDockerContainer(jobData: IProcessJob) {
-  const containerGroupName = `mooz-transcoder-${Date.now()}`;
-  const imageName = 'docker.io/nikhilesh002/mooz-transcoder:latest';
+  const containerGroupName = `vibes-transcoder-${Date.now()}`;
+  const imageName = 'docker.io/nikhilesh002/vibes-transcoder:latest';
 
   const containerGroup = {
     confidentialComputeProperties: {
@@ -54,7 +54,7 @@ export async function createDockerContainer(jobData: IProcessJob) {
     },
     containers: [
       {
-        name: 'mooz-transcoder',
+        name: 'vibes-transcoder',
         image: imageName,
         command: [],
         environmentVariables: [

@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { IUploadVideoForm } from '@/lib/types';
 import { uploadData } from '@/lib/videoUpload';
+import { Loader2 } from 'lucide-react';
 import { ChangeEvent, FormEvent, useState } from 'react';
 import toast from 'react-hot-toast';
 
@@ -15,6 +16,7 @@ function VideoUpload() {
     description: '',
     tags: [],
   });
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleUpload = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -25,6 +27,7 @@ function VideoUpload() {
     }
 
     try {
+      setIsUploading(true);
       await uploadData(video, videoData, thumbnail);
 
       setVideo(null);
@@ -33,6 +36,8 @@ function VideoUpload() {
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('An error occurred during upload.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -118,7 +123,16 @@ function VideoUpload() {
               />
             </div>
 
-            <Button type="submit">Upload</Button>
+            <Button type="submit" disabled={isUploading}>
+              {isUploading ? (
+                <span className="flex items-center gap-2">
+                  Uploading...
+                  <Loader2 className="animate-spin" />
+                </span>
+              ) : (
+                'Upload'
+              )}
+            </Button>
           </form>
         </Card>
       </div>

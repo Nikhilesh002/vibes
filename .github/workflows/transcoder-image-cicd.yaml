@@ -25,7 +25,7 @@ jobs:
       - name: Build
         run: |
             cd transcoder   # working dir not persisted
-            docker build -t nikhilesh002/mooz-transcoder:latest .
+            docker build -t nikhilesh002/vibes-transcoder:latest .
 
       - name: Build
-        run: docker push nikhilesh002/mooz-transcoder:latest
+        run: docker push nikhilesh002/vibes-transcoder:latest

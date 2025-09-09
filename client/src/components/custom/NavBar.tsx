@@ -1,13 +1,13 @@
-import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { AppDispatch, RootState } from "@/redux/store";
-import { logout } from "@/redux/slices/userSlice";
-import toast from "react-hot-toast";
-import { axiosWithToken } from "@/lib/axiosWithToken";
-import { ModeToggle } from "@/components/ui/mode-toggle";
-import { Separator } from "@radix-ui/react-menubar";
-import { Menu, X } from "lucide-react";
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { AppDispatch, RootState } from '@/redux/store';
+import { logout } from '@/redux/slices/userSlice';
+import toast from 'react-hot-toast';
+import { axiosWithToken } from '@/lib/axiosWithToken';
+import { ModeToggle } from '@/components/ui/mode-toggle';
+import { Separator } from '@radix-ui/react-menubar';
+import { Menu, X } from 'lucide-react';
 
 const NavBar: React.FC = () => {
   const location = useLocation();
@@ -16,12 +16,14 @@ const NavBar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) =>
-    location.pathname === path ? "bg-black text-white dark:bg-gray-100 dark:text-black" : "";
+    location.pathname === path
+      ? 'bg-black text-white dark:bg-gray-100 dark:text-black'
+      : '';
 
   const handleSignout = async () => {
     try {
       const res = await axiosWithToken.get(
-        `${import.meta.env.VITE_API_URL}/user/signout`
+        `${import.meta.env.VITE_API_URL}/user/signout`,
       );
 
       if (res.status === 200) {
@@ -32,26 +34,24 @@ const NavBar: React.FC = () => {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Signout failed");
+      toast.error('Signout failed');
     }
   };
 
   const navLinks = [
-    { to: "/", label: "Home" },
-    { to: "/videos", label: "Videos" },
-    { to: "/video-upload", label: "Upload Videos" },
+    { to: '/', label: 'Home' },
+    { to: '/videos', label: 'Videos' },
+    { to: '/video-upload', label: 'Upload Videos' },
     userData.user
-      ? { to: "/signin", label: "Signout", onClick: handleSignout }
-      : { to: "/signin", label: "SignIn" },
+      ? { to: '/signin', label: 'Signout', onClick: handleSignout }
+      : { to: '/signin', label: 'SignIn' },
   ];
 
   return (
     <div className="w-full shadow-md">
       <nav className="flex items-center justify-between p-4 max-w-7xl mx-auto">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold">
-            Vidmux
-          </h1>
+          <h1 className="text-2xl font-bold">Vibes</h1>
         </div>
 
         {/* Desktop Menu */}
@@ -61,7 +61,9 @@ const NavBar: React.FC = () => {
               key={label}
               to={to}
               onClick={onClick}
-              className={`px-3 py-2 rounded transition-colors duration-300 ${isActive(to)} hover:bg-gray-200 hover:text-black`}
+              className={`px-3 py-2 rounded transition-colors duration-300 ${isActive(
+                to,
+              )} hover:bg-gray-200 hover:text-black`}
             >
               {label}
             </Link>
@@ -89,7 +91,9 @@ const NavBar: React.FC = () => {
                 if (onClick) onClick();
                 setMobileMenuOpen(false);
               }}
-              className={`block px-3 py-2 rounded ${isActive(to)} hover:bg-gray-200 hover:text-black`}
+              className={`block px-3 py-2 rounded ${isActive(
+                to,
+              )} hover:bg-gray-200 hover:text-black`}
             >
               {label}
             </Link>

@@ -176,7 +176,7 @@ func main() {
 			panic(err)
 		}
 	}()
-	mdb := mongoClient.Database("vidmux")
+	mdb := mongoClient.Database("vibes")
 
 	// convert to ObjectId
 	videoJobObjId, err := primitive.ObjectIDFromHex(myEnvs.videoJobId)

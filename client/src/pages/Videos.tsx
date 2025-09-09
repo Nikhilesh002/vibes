@@ -26,7 +26,6 @@ function Videos() {
 
   return (
     <div className="p-1">
-      <h1 className="text-xl font-semibold">Your Videos here: </h1>
       <div className="flex flex-wrap gap-3 p-3">
         {videos.map((video: IVideo) => (
           <Card
