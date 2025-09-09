@@ -1,21 +1,13 @@
-import VideoJS from '@/components/custom/VideoJS';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { axiosWithToken } from '@/lib/axiosWithToken';
-import { formatDescription, timeElapsed } from '@/lib/formatFuncs';
+import { timeElapsed } from '@/lib/formatFuncs';
 import { IVideo } from '@/lib/types';
-import { useEffect, useRef, useState } from 'react';
-import videojs from 'video.js';
-import 'video.js/dist/video-js.css';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Videos() {
   const [videos, setVideos] = useState<IVideo[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -27,26 +19,9 @@ function Videos() {
     })();
   }, []);
 
-  const playerRef = useRef(null);
-
-  const videoJsOptions = {
-    autoplay: false,
-    controls: true,
-    responsive: true,
-    fluid: true,
-  };
-
-  const handlePlayerReady = (player: any) => {
-    playerRef.current = player;
-
-    // You can handle player events here, for example:
-    player.on('waiting', () => {
-      videojs.log('player is waiting');
-    });
-
-    player.on('dispose', () => {
-      videojs.log('player will dispose');
-    });
+  const handleVideoClick = (video: IVideo) => {
+    console.log('video clicked', video);
+    navigate(`/video/${video._id}`);
   };
 
   return (
@@ -54,31 +29,26 @@ function Videos() {
       <h1 className="text-xl font-semibold">Your Videos here: </h1>
       <div className="flex flex-wrap gap-3 p-3">
         {videos.map((video: IVideo) => (
-          <Card onClick={() => {}} className="w-80" key={video._id}>
-            <CardHeader>
-              <CardTitle>{video.title}</CardTitle>
-              <CardDescription>
-                {formatDescription(video.description)}
-              </CardDescription>
-            </CardHeader>
-
+          <Card
+            onClick={() => handleVideoClick(video)}
+            className="w-96 hover:cursor-pointer"
+            key={video._id}
+          >
             <CardContent>
               {/* put video thumbnail */}
-              <VideoJS
-                options={{
-                  ...videoJsOptions,
-                  sources: video.transcodedVideoUrl,
-                  poster: video.thumbnailUrl,
-                }}
-                onReady={handlePlayerReady}
-              />
+              <img src={video.thumbnailUrl} alt={video.title} className='w-96 h-48' />
             </CardContent>
 
-            <CardFooter className="flex flex-col">
-              <p>{video.status}</p>
-              <p className="font-light text-gray-300 text-sm">
-                {timeElapsed(video.completedAt)}
-              </p>
+            <CardFooter className="flex-col ">
+              <div className="">
+                <p>{video.title}</p>
+              </div>
+
+              <div className="flex font-light text-gray-300 text-sm">
+                <p>5 views</p>
+                <span className="mx-2">•</span>
+                <p className="">{timeElapsed(video.completedAt)}</p>
+              </div>
             </CardFooter>
           </Card>
         ))}

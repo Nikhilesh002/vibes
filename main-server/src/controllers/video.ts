@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
-import { makePresignedUrl } from '../utils/azureBlob/makePresignedUrl';
+import {
+  getPresignedUrl,
+  makePresignedUrl,
+} from '../utils/azureBlob/makePresignedUrl';
 import { VideoJobModel } from '../models/videoJob';
 import Redis from 'ioredis';
 import { UserModel } from '../models/user';
@@ -93,11 +96,8 @@ export const transcodeVideo = async (
 
 export const allVideos = async (req: Request, res: Response): Promise<any> => {
   try {
-    const user = await UserModel.findOne({ _id: req.userId }).populate({
+    let user = await UserModel.findOne({ _id: req.userId }).populate({
       path: 'videoJobIds',
-      match: {
-        status: 'DONE',
-      },
     });
     if (!user) {
       console.error('User not found!!');
@@ -106,12 +106,62 @@ export const allVideos = async (req: Request, res: Response): Promise<any> => {
       });
     }
 
+    user.videoJobIds.forEach((video: any) => {
+      console.log({ video });
+
+      if (!video) return;
+      if (video.thumbnailUrl.includes('.blob.core.windows.net/'))
+        video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl);
+
+      // if (video.transcodedVideoUrl.includes('.blob.core.windows.net/'))
+      //   video.transcodedVideoUrl = getPresignedUrl(video.transcodedVideoUrl);
+    });
+
+    console.log(user.videoJobIds);
+
     return res.json({
       success: true,
       user,
     });
   } catch (error) {
     console.error('Error getting videos', error);
+    res.status(400).json({
+      success: false,
+      msg: error,
+    });
+  }
+};
+
+export const getVideoById = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const { videoId } = req.params;
+    const video = await VideoJobModel.findOne({
+      _id: videoId,
+      userId: req.userId,
+    });
+    if (!video) {
+      console.error('Video not found!!');
+      return res.status(400).json({
+        success: false,
+        msg: 'Video not found',
+      });
+    }
+
+    if (video.thumbnailUrl.includes('.blob.core.windows.net/'))
+      video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl);
+
+    // if (video.transcodedVideoUrl.includes('.blob.core.windows.net/'))
+    //   video.transcodedVideoUrl = getPresignedUrl(video.transcodedVideoUrl);
+
+    return res.json({
+      success: true,
+      ...video.toObject(),
+    });
+  } catch (error) {
+    console.error('Error getting video by id', error);
     res.status(400).json({
       success: false,
       msg: error,
