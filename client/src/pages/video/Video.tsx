@@ -2,21 +2,26 @@ import { useEffect, useRef, useState } from 'react';
 import VideoJS from '@/components/custom/VideoJS';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
-import { IVideo } from '@/lib/types';
+import { IVideoData } from '@/lib/types';
 import { useParams } from 'react-router-dom';
 import { axiosWithToken } from '@/lib/axiosWithToken';
+import VideoInfo from './_components/VideoInfo';
+import Comments from './_components/Comments';
 
 function Video() {
   const { videoId } = useParams();
 
-  const [video, setVideo] = useState<IVideo | null>(null);
+  const [videoData, setVideoData] = useState<IVideoData | null>(null);
 
   useEffect(() => {
     (async () => {
       const resp = await axiosWithToken.get(
         `${import.meta.env.VITE_API_URL}/video/${videoId}`,
       );
-      setVideo(resp.data);
+      setVideoData({
+        video: resp.data.video,
+        likeStatus: resp.data.likeStatus,
+      });
     })();
   }, [videoId]);
 
@@ -48,45 +53,23 @@ function Video() {
 
   return (
     <div>
-      {video ? (
+      {videoData?.video ? (
         <div className="p-0.5">
           <div className="w-full border-2 border-gray-700 rounded-lg overflow-hidden shadow-2xl ">
             <VideoJS
               options={{
                 ...videoJsOptions,
-                sources: video.transcodedVideoUrl,
-                poster: video.thumbnailUrl,
+                sources: videoData.video.transcodedVideoUrl,
+                poster: videoData.video.thumbnailUrl,
               }}
               onReady={handlePlayerReady}
             />
           </div>
 
-          <div className="border bg-gray-800 border-gray-700 rounded-md p-4 mt-4 shadow-lg">
-            <h1 className="text-2xl font-bold mb-1">{video.title}</h1>
+          <div className="px-4 space-y-4">
+            <VideoInfo videoData={videoData} setVideoData={setVideoData} />
 
-            <div className="text-gray-400 flex space-x-3 font-medium text-sm">
-              <div className="">
-                <span className="">{5} views</span>
-              </div>
-
-              <div className="">
-                <p className="">{new Date(video.completedAt).toDateString()}</p>
-              </div>
-
-              <div className="">
-                {video.tags && video.tags.length > 0 ? (
-                  video.tags.map((tag, index) => (
-                    <span key={index} className="mr-1 text-blue-500">
-                      #{tag}
-                    </span>
-                  ))
-                ) : (
-                  <></>
-                )}
-              </div>
-            </div>
-
-            <p className="mb-4">{video.description}</p>
+            <Comments />
           </div>
         </div>
       ) : (

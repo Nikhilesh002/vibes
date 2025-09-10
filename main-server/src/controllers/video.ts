@@ -4,8 +4,10 @@ import {
   makePresignedUrl,
 } from '../utils/azureBlob/makePresignedUrl';
 import { VideoJobModel } from '../models/videoJob';
-import Redis from 'ioredis';
 import { UserModel } from '../models/user';
+import mongoose from 'mongoose';
+import { envs } from '../configs';
+import { LikeModel } from '../models/like';
 
 export async function preSignedUrl(req: Request, res: Response): Promise<any> {
   try {
@@ -64,38 +66,6 @@ export async function preSignedUrl(req: Request, res: Response): Promise<any> {
   }
 }
 
-export const transcodeVideo = async (
-  req: Request,
-  res: Response,
-): Promise<any> => {
-  try {
-    const { videoUrl, videoJobId } = req.body;
-    const job = JSON.stringify({ videoUrl, videoJobId });
-
-    // publish job in queue
-    const redis = new Redis(process.env.REDIS_URL ?? '');
-    await redis.lpush('VIDEO_TRANSCODING_PENDING', job);
-    console.log(`REDIS: job: VIDEO_TRANSCODING_PENDING - ${job}`);
-
-    // update status in db
-    await VideoJobModel.updateOne(
-      { _id: videoJobId },
-      { $set: { status: 'IN_QUEUE' } },
-    );
-
-    res.status(200).json({
-      success: true,
-      msg: 'Added to Queue',
-    });
-  } catch (error) {
-    console.error('Error publishing job', error);
-    res.status(400).json({
-      success: false,
-      msg: error,
-    });
-  }
-};
-
 export const allVideos = async (req: Request, res: Response): Promise<any> => {
   try {
     let user = await UserModel.findOne({ _id: req.userId }).populate({
@@ -142,6 +112,8 @@ export const getVideoById = async (
 ): Promise<any> => {
   try {
     const { videoId } = req.params;
+    const userId = req.userId;
+
     const video = await VideoJobModel.findOne({
       _id: videoId,
       userId: req.userId,
@@ -154,18 +126,222 @@ export const getVideoById = async (
       });
     }
 
+    const like = await LikeModel.findOne({
+      videoId,
+      userId,
+    });
+
     if (video.thumbnailUrl.includes('.blob.core.windows.net/'))
       video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl, 'r');
 
+    // TODO: no auth
     // if (video.transcodedVideoUrl.includes('.blob.core.windows.net/'))
     //   video.transcodedVideoUrl = getPresignedUrl(video.transcodedVideoUrl, 'r');
 
     return res.json({
       success: true,
-      ...video.toObject(),
+      video,
+      likeStatus: like ? like.likeStatus : 'NONE',
     });
   } catch (error) {
     console.error('Error getting video by id', error);
+    res.status(400).json({
+      success: false,
+      msg: error,
+    });
+  }
+};
+
+export const likeVideo = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { videoId } = req.params;
+    const userId = req.userId;
+
+    const db = await mongoose.createConnection(envs.mongodbUri).asPromise();
+    const session = await db.startSession();
+
+    try {
+      session.startTransaction();
+
+      const resp1 = await LikeModel.findOne({ videoId, userId }).session(
+        session,
+      );
+      console.log({ resp1 });
+
+      if (resp1) {
+        if (resp1.likeStatus === 'LIKED') {
+          // already liked
+          await session.commitTransaction();
+          return res.json({
+            success: true,
+          });
+        } else if (resp1.likeStatus === 'DISLIKED') {
+          // change dislike to like
+          const resp2 = await LikeModel.updateOne(
+            { _id: resp1._id },
+            { likeStatus: 'LIKED' },
+          ).session(session);
+          console.log({ resp2 });
+
+          const resp3 = await VideoJobModel.findOneAndUpdate(
+            { _id: videoId },
+            { $inc: { likes: 1, dislikes: -1 } },
+          ).session(session);
+          console.log({ resp3 });
+        } else if (resp1.likeStatus === 'NONE') {
+          // change none to like
+          const resp2 = await LikeModel.updateOne(
+            { _id: resp1._id },
+            { likeStatus: 'LIKED' },
+          ).session(session);
+          console.log({ resp2 });
+
+          const resp3 = await VideoJobModel.findOneAndUpdate(
+            { _id: videoId },
+            { $inc: { likes: 1 } },
+          ).session(session);
+          console.log({ resp3 });
+        }
+      } else {
+        // create new like
+        const resp2 = await LikeModel.create(
+          [
+            {
+              videoId,
+              userId,
+              likeStatus: 'LIKED',
+            },
+          ],
+          { session },
+        );
+        console.log({ resp2 });
+
+        const resp3 = await VideoJobModel.findOneAndUpdate(
+          { _id: videoId },
+          { $inc: { likes: 1 } },
+        ).session(session);
+        console.log({ resp3 });
+
+        if (!resp3) {
+          throw new Error('Video not found');
+        }
+      }
+
+      await session.commitTransaction();
+    } catch (error) {
+      console.log('Error in likeVideo transaction', error);
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      await session.endSession();
+      await db.close();
+    }
+
+    return res.json({
+      success: true,
+    });
+  } catch (error) {
+    console.error('Error liking video', error);
+    res.status(400).json({
+      success: false,
+      msg: error,
+    });
+  }
+};
+
+export const dislikeVideo = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const { videoId } = req.params;
+    const userId = req.userId;
+
+    const db = await mongoose.createConnection(envs.mongodbUri).asPromise();
+    const session = await db.startSession();
+
+    try {
+      session.startTransaction();
+
+      const resp1 = await LikeModel.findOne({ videoId, userId }).session(
+        session,
+      );
+      console.log({ resp1 });
+
+      if (resp1) {
+        if (resp1.likeStatus === 'DISLIKED') {
+          // already disliked
+          await session.commitTransaction();
+          return res.json({
+            success: true,
+          });
+        } else if (resp1.likeStatus === 'LIKED') {
+          // change like to dislike
+          const resp2 = await LikeModel.updateOne(
+            { _id: resp1._id },
+            { likeStatus: 'DISLIKED' },
+          ).session(session);
+          console.log({ resp2 });
+
+          const resp3 = await VideoJobModel.findOneAndUpdate(
+            { _id: videoId },
+            { $inc: { likes: -1, dislikes: 1 } },
+          ).session(session);
+          console.log({ resp3 });
+        } else if (resp1.likeStatus === 'NONE') {
+          // change none to dislike
+          const resp2 = await LikeModel.updateOne(
+            { _id: resp1._id },
+            { likeStatus: 'DISLIKED' },
+          ).session(session);
+          console.log({ resp2 });
+
+          const resp3 = await VideoJobModel.findOneAndUpdate(
+            { _id: videoId },
+            { $inc: { dislikes: 1 } },
+          ).session(session);
+          console.log({ resp3 });
+        }
+      } else {
+        // create new dislike
+        const resp2 = await LikeModel.create(
+          [
+            {
+              videoId,
+              userId,
+              likeStatus: 'DISLIKED',
+            },
+          ],
+          { session },
+        );
+        console.log({ resp2 });
+
+        const resp3 = await VideoJobModel.findOneAndUpdate(
+          { _id: videoId },
+          { $inc: { dislikes: 1 } },
+        ).session(session);
+        console.log({ resp3 });
+
+        if (!resp3) {
+          throw new Error('Video not found');
+        }
+      }
+
+      await session.commitTransaction();
+    } catch (error) {
+      console.log('Error in dislikeVideo transaction', error);
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      await session.endSession();
+      await db.close();
+    }
+
+    return res.json({
+      success: true,
+    });
+  } catch (error) {
+    console.error('Error disliking video', error);
     res.status(400).json({
       success: false,
       msg: error,

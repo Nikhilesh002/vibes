@@ -11,6 +11,13 @@ export interface IVideoJob {
   thumbnailUrl: string;
   title: string;
   completedAt: number;
+
+  views: number;
+  likes: number;
+  dislikes: number;
+
+  comments: Schema.Types.ObjectId[];
+
   userId: Schema.Types.ObjectId;
 }
 
@@ -34,6 +41,12 @@ const videoJobSchema = new mongoose.Schema(
       index: true,
     },
     transcodedVideoUrl: { type: String, default: '' },
+
+    views: { type: Number, default: 0 },
+    likes: { type: Number, default: 0 },
+    dislikes: { type: Number, default: 0 },
+
+    comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
   },
   {
     timestamps: true,

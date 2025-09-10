@@ -7,8 +7,8 @@ import NavBar from "./components/custom/NavBar";
 import Home from "./pages/Home";
 import NotFound from "./pages/Not-Found";
 import VideoUpload from "./pages/VideoUpload";
-import Videos from "./pages/Videos";
-import Video from "./pages/Video";
+import Videos from "./pages/videos/Videos";
+import Video from "./pages/video/Video";
 
 function App() {
   return (

@@ -1,3 +1,15 @@
+export interface IComment {
+  videoId: string;
+  userId: string;
+
+  content: string;
+  likes: number;
+  dislikes: number;
+  star: boolean;
+
+  comments: IComment[];
+}
+
 export interface IUploadVideoForm {
   title: string;
   description: string;
@@ -14,4 +26,15 @@ export interface IVideo extends IUploadVideoForm {
   thumbnailUrl: string;
   completedAt: number;
   userId: string;
+
+  views: number;
+  likes: number;
+  dislikes: number;
+
+  comments: IComment[];
+}
+
+export interface IVideoData {
+  video: IVideo;
+  likeStatus: 'LIKED' | 'DISLIKED' | 'NONE';
 }
