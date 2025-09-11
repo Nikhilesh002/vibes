@@ -2,28 +2,42 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { axiosWithToken } from '@/lib/axiosWithToken';
 import { formatViews, timeElapsed } from '@/lib/formatFuncs';
 import { IVideo } from '@/lib/types';
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SearchBar from './_components/SearchBar';
+import { useQuery } from '@tanstack/react-query';
 
 function Videos() {
-  const [videos, setVideos] = useState<IVideo[]>([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    (async () => {
+  const {
+    isPending,
+    isError,
+    data: videos,
+    error,
+  } = useQuery({
+    queryKey: ['get-videos'],
+    queryFn: async (): Promise<IVideo[]> => {
       const resp = await axiosWithToken.get(
         `${import.meta.env.VITE_API_URL}/video`,
       );
-      console.log(resp.data.user);
-      setVideos(resp.data.user.videoJobIds);
-    })();
-  }, []);
+
+      return resp.data.user.videoJobIds;
+    },
+    staleTime: 1000 * 60 * 2, // 5 minutes
+  });
 
   const handleVideoClick = (video: IVideo) => {
     console.log('video clicked', video);
     navigate(`/video/${video._id}`);
   };
+
+  if (isPending) {
+    return <span>Loading...</span>;
+  }
+
+  if (isError) {
+    return <span>Error: {error.message}</span>;
+  }
 
   return (
     <div className="p-1 flex flex-col">

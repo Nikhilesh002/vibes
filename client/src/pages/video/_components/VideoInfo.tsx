@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { axiosWithToken } from '@/lib/axiosWithToken';
 import { formatViews } from '@/lib/formatFuncs';
 import { IVideoData } from '@/lib/types';
 import { Download, Share2, ThumbsDown, ThumbsUp } from 'lucide-react';
@@ -7,129 +6,16 @@ import toast from 'react-hot-toast';
 
 interface VideoInfoProps {
   videoData: IVideoData;
-  setVideoData: React.Dispatch<React.SetStateAction<IVideoData | null>>;
+  mutation: any
 }
 
-export default function VideoInfo({ videoData, setVideoData }: VideoInfoProps) {
+export default function VideoInfo({ videoData, mutation }: VideoInfoProps) {
   if (!videoData || !videoData.video) {
     return <div>Loading...</div>;
   }
 
   const handleSubscribe = () => {
     alert('Subscribe feature coming soon!');
-  };
-
-  const handleLike = async () => {
-    // optimistically update UI
-    if (!videoData) return;
-
-    const previousVideoData = { ...videoData };
-
-    if (videoData.likeStatus === 'DISLIKED') {
-      setVideoData((prev) => {
-        if (!prev) return prev;
-        return {
-          likeStatus: 'LIKED',
-          video: {
-            ...prev.video,
-            likes: prev.video.likes + 1,
-            dislikes: prev.video.dislikes - 1,
-          },
-        };
-      });
-    } else if (videoData.likeStatus === 'NONE') {
-      setVideoData((prev) => {
-        if (!prev) return prev;
-        return {
-          likeStatus: 'LIKED',
-          video: {
-            ...prev.video,
-            likes: prev.video.likes + 1,
-          },
-        };
-      });
-    } else if (videoData.likeStatus === 'LIKED') {
-      setVideoData((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          likeStatus: 'NONE',
-          video: {
-            ...prev.video,
-            likes: prev.video.likes - 1,
-          },
-        };
-      });
-    }
-
-    // make API call
-    try {
-      const resp = await axiosWithToken.put(
-        `${import.meta.env.VITE_API_URL}/video/${videoData.video._id}/like`,
-      );
-      console.log({ resp });
-    } catch (error) {
-      console.error('Error liking video', error);
-      // revert UI update on error
-      setVideoData(previousVideoData);
-      toast.error('Error liking video');
-    }
-  };
-
-  const handleDislike = async () => {
-    // optimistically update UI
-    if (!videoData) return;
-
-    const previousVideoData = { ...videoData };
-
-    if (videoData.likeStatus === 'LIKED') {
-      setVideoData((prev) => {
-        if (!prev) return prev;
-        return {
-          likeStatus: 'DISLIKED',
-          video: {
-            ...prev.video,
-            likes: prev.video.likes - 1,
-            dislikes: prev.video.dislikes + 1,
-          },
-        };
-      });
-    } else if (videoData.likeStatus === 'NONE') {
-      setVideoData((prev) => {
-        if (!prev) return prev;
-        return {
-          likeStatus: 'DISLIKED',
-          video: {
-            ...prev.video,
-            dislikes: prev.video.dislikes + 1,
-          },
-        };
-      });
-    } else if (videoData.likeStatus === 'DISLIKED') {
-      setVideoData((prev) => {
-        if (!prev) return prev;
-        return {
-          likeStatus: 'NONE',
-          video: {
-            ...prev.video,
-            dislikes: prev.video.dislikes - 1,
-          },
-        };
-      });
-    }
-
-    // make API call
-    try {
-      const resp = await axiosWithToken.put(
-        `${import.meta.env.VITE_API_URL}/video/${videoData.video._id}/dislike`,
-      );
-      console.log({ resp });
-    } catch (error) {
-      console.error('Error disliking video', error);
-      // revert UI update on error
-      setVideoData(previousVideoData);
-      toast.error('Error disliking video');
-    }
   };
 
   return (
@@ -149,7 +35,10 @@ export default function VideoInfo({ videoData, setVideoData }: VideoInfoProps) {
 
           <div className="flex space-x-4 ml-auto text-sm text-gray-200">
             <div className="bg-gray-800 border border-gray-700 rounded-md">
-              <button onClick={handleLike} className="p-2 cursor-pointer">
+              <button
+                onClick={() => mutation.mutate('LIKE')}
+                className="p-2 cursor-pointer"
+              >
                 <ThumbsUp
                   fill={videoData.likeStatus === 'LIKED' ? 'white' : 'none'}
                   className={`inline-block mr-1 w-5 h-5 `}
@@ -159,7 +48,10 @@ export default function VideoInfo({ videoData, setVideoData }: VideoInfoProps) {
             </div>
 
             <div className="bg-gray-800 border border-gray-700 rounded-md">
-              <button onClick={handleDislike} className="p-2 cursor-pointer">
+              <button
+                onClick={() => mutation.mutate('DISLIKE')}
+                className="p-2 cursor-pointer"
+              >
                 <ThumbsDown
                   fill={videoData.likeStatus === 'DISLIKED' ? 'white' : 'none'}
                   className="inline-block mr-1 w-5 h-5"
