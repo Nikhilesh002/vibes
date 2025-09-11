@@ -9,6 +9,7 @@ import NotFound from "./pages/Not-Found";
 import VideoUpload from "./pages/VideoUpload";
 import Videos from "./pages/videos/Videos";
 import Video from "./pages/video/Video";
+import Results from "./pages/results/Results";
 
 function App() {
   return (
@@ -26,6 +27,8 @@ function App() {
           <Route path="/video-upload" element={<VideoUpload />} />
 
           <Route path="/video/:videoId" element={<Video />} />
+
+          <Route path="/results" element={<Results />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

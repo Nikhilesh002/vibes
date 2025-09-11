@@ -15,6 +15,7 @@ app.use(
       'http://localhost:5173',
       'http://127.0.0.1:3001',
       'https://joinvibes.vercel.app',
+      'https://onvibes.vercel.app',
     ],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],

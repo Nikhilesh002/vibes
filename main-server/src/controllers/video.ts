@@ -5,8 +5,6 @@ import {
 } from '../utils/azureBlob/makePresignedUrl';
 import { VideoJobModel } from '../models/videoJob';
 import { UserModel } from '../models/user';
-import mongoose from 'mongoose';
-import { envs } from '../configs';
 import { LikeModel } from '../models/like';
 import { db } from '../configs/db';
 
