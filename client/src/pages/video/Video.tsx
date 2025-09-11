@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import VideoJS from '@/components/custom/VideoJS';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
@@ -32,8 +32,8 @@ function Video() {
     staleTime: 2 * 60 * 1000,
   });
 
-  const handleLike = async () => {
-    if (!videoData) return;
+  const handleLike = useCallback(async (): Promise<IVideoData | null> => {
+    if (!videoData) return null;
 
     const previousVideoData = { ...videoData };
     const updatedVideoData = { ...videoData };
@@ -64,10 +64,10 @@ function Video() {
       toast.error('Error liking video');
       return previousVideoData;
     }
-  };
+  }, [videoData]);
 
-  const handleDislike = async () => {
-    if (!videoData) return;
+  const handleDislike = useCallback(async (): Promise<IVideoData | null> => {
+    if (!videoData) return null;
 
     const previousVideoData = { ...videoData };
     const updatedVideoData = { ...videoData };
@@ -99,10 +99,12 @@ function Video() {
 
       return previousVideoData;
     }
-  };
+  }, [videoData]);
 
   const mutation = useMutation({
-    mutationFn: async (buttonType: 'LIKE' | 'DISLIKE') => {
+    mutationFn: async (
+      buttonType: 'LIKE' | 'DISLIKE',
+    ): Promise<IVideoData | null | undefined> => {
       if (buttonType === 'LIKE') {
         return await handleLike();
       } else if (buttonType === 'DISLIKE') {
@@ -148,7 +150,7 @@ function Video() {
     <div>
       {videoData?.video ? (
         <div className="p-0.5">
-          <div className="w-full border-2 border-gray-700 rounded-lg overflow-hidden shadow-2xl ">
+          <div className="px-56 border-2 border-gray-700 rounded-lg shadow-2xl ">
             <VideoJS
               options={{
                 ...videoJsOptions,

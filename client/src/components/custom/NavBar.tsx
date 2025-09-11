@@ -50,7 +50,8 @@ const NavBar: React.FC = () => {
   return (
     <div className="w-full shadow-md">
       <nav className="flex items-center justify-between p-4 max-w-7xl mx-auto">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <img src="/logo.png" alt="Logo" className="h-8 w-8 rounded" />
           <a href="/" className="text-2xl font-bold">
             Vibes
           </a>

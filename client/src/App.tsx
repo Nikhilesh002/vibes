@@ -21,16 +21,16 @@ function App() {
           <BrowserRouter>
             <NavBar />
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/home" element={<Home />} />
+
               <Route path="/signin" element={<Signin />} />
               <Route path="/signup" element={<Signup />} />
 
-              <Route path="/videos" element={<Videos />} />
-              <Route path="/video-upload" element={<VideoUpload />} />
-
+              <Route path="/" element={<Videos />} />
               <Route path="/video/:videoId" element={<Video />} />
-
               <Route path="/results" element={<Results />} />
+
+              <Route path="/video-upload" element={<VideoUpload />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
