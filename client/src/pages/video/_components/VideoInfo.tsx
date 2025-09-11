@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { axiosWithToken } from '@/lib/axiosWithToken';
+import { formatViews } from '@/lib/formatFuncs';
 import { IVideoData } from '@/lib/types';
 import { Download, Share2, ThumbsDown, ThumbsUp } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -179,9 +180,9 @@ export default function VideoInfo({ videoData, setVideoData }: VideoInfoProps) {
               </button>
             </div>
 
-            <div className="bg-gray-800 border border-gray-700 rounded-md p-2 hover:cursor-pointer">
+            <div className="bg-gray-800 border border-gray-700 rounded-md hover:cursor-pointer">
               <button
-                className="hover:cursor-pointer"
+                className="hover:cursor-pointer p-2"
                 onClick={() => {
                   alert('Download feature coming soon!');
                 }}
@@ -196,7 +197,7 @@ export default function VideoInfo({ videoData, setVideoData }: VideoInfoProps) {
       <div className="border bg-gray-800 border-gray-700 rounded-md p-4 mt-4 shadow-lg">
         <div className="text-gray-400 flex space-x-3 font-medium text-sm">
           <div className="">
-            <span className="">{videoData.video.views} views</span>
+            <span className="">{formatViews(videoData.video.views)} views</span>
           </div>
 
           <div className="">

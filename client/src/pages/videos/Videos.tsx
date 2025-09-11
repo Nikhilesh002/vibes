@@ -1,6 +1,6 @@
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { axiosWithToken } from '@/lib/axiosWithToken';
-import { timeElapsed } from '@/lib/formatFuncs';
+import { formatViews, timeElapsed } from '@/lib/formatFuncs';
 import { IVideo } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -44,7 +44,7 @@ function Videos() {
               </div>
 
               <div className="flex font-light text-gray-300 text-sm">
-                <p>5 views</p>
+                <p>{formatViews(video.views)} views</p>
                 <span className="mx-2">•</span>
                 <p className="">{timeElapsed(video.completedAt)}</p>
               </div>

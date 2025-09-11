@@ -115,9 +115,8 @@ export const getVideoById = async (
     const { videoId } = req.params;
     const userId = req.userId;
 
-    const video = await VideoJobModel.findOne({
-      _id: videoId,
-      userId: req.userId,
+    const video = await VideoJobModel.findByIdAndUpdate(videoId, {
+      $inc: { views: 1 },
     });
     if (!video) {
       console.error('Video not found!!');

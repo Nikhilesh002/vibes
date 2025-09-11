@@ -15,12 +15,25 @@ export const timeElapsed = (dateNumber: number) => {
   const months = Math.floor(days / 30);
   const years = Math.floor(months / 12);
 
-  if (years > 0) return `${years} years ago`;
-  if (months > 0) return `${months} months ago`;
-  if (days > 0) return `${days} days ago`;
-  if (hours > 0) return `${hours} hours ago`;
-  if (minutes > 0) return `${minutes} minutes ago`;
+  if (years > 1) return `${years} years ago`;
+  if (years === 1) return `1 year ago`;
+  if (months > 1) return `${months} months ago`;
+  if (months === 1) return `1 month ago`;
+  if (days > 1) return `${days} days ago`;
+  if (days === 1) return `1 day ago`;
+  if (hours > 1) return `${hours} hours ago`;
+  if (hours === 1) return `1 hour ago`;
+  if (minutes > 1) return `${minutes} minutes ago`;
+  if (minutes === 1) return `1 minute ago`;
+  if (seconds <= 10) return `just now`;
   return `${seconds} seconds ago`;
+};
+
+export const formatViews = (views: number) => {
+  if (views < 1000) return views.toString();
+  if (views < 1_000_000) return (views / 1000).toFixed(1) + 'K';
+  if (views < 1_000_000_000) return (views / 1_000_000).toFixed(1) + 'M';
+  return (views / 1_000_000_000).toFixed(1) + 'B';
 };
 
 export const formatDescription = (description: string) => {
