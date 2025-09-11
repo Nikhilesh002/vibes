@@ -35,4 +35,6 @@ const likeSchema = new mongoose.Schema(
   },
 );
 
+likeSchema.index({ videoId: 1, userId: 1 }, { unique: true });
+
 export const LikeModel = mongoose.model<ILikeDoc>('Like', likeSchema);

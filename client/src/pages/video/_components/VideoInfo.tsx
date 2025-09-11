@@ -20,7 +20,7 @@ export default function VideoInfo({ videoData, setVideoData }: VideoInfoProps) {
 
   const handleLike = async () => {
     // optimistically update UI
-    if (!videoData || videoData.likeStatus === 'LIKED') return;
+    if (!videoData) return;
 
     const previousVideoData = { ...videoData };
 
@@ -28,7 +28,6 @@ export default function VideoInfo({ videoData, setVideoData }: VideoInfoProps) {
       setVideoData((prev) => {
         if (!prev) return prev;
         return {
-          ...prev,
           likeStatus: 'LIKED',
           video: {
             ...prev.video,
@@ -37,14 +36,26 @@ export default function VideoInfo({ videoData, setVideoData }: VideoInfoProps) {
           },
         };
       });
-    } else {
+    } else if (videoData.likeStatus === 'NONE') {
+      setVideoData((prev) => {
+        if (!prev) return prev;
+        return {
+          likeStatus: 'LIKED',
+          video: {
+            ...prev.video,
+            likes: prev.video.likes + 1,
+          },
+        };
+      });
+    } else if (videoData.likeStatus === 'LIKED') {
       setVideoData((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
+          likeStatus: 'NONE',
           video: {
             ...prev.video,
-            likes: prev.video.likes + 1,
+            likes: prev.video.likes - 1,
           },
         };
       });
@@ -64,8 +75,60 @@ export default function VideoInfo({ videoData, setVideoData }: VideoInfoProps) {
     }
   };
 
-  const handleDislike = () => {
-    alert('Dislike feature coming soon!');
+  const handleDislike = async () => {
+    // optimistically update UI
+    if (!videoData) return;
+
+    const previousVideoData = { ...videoData };
+
+    if (videoData.likeStatus === 'LIKED') {
+      setVideoData((prev) => {
+        if (!prev) return prev;
+        return {
+          likeStatus: 'DISLIKED',
+          video: {
+            ...prev.video,
+            likes: prev.video.likes - 1,
+            dislikes: prev.video.dislikes + 1,
+          },
+        };
+      });
+    } else if (videoData.likeStatus === 'NONE') {
+      setVideoData((prev) => {
+        if (!prev) return prev;
+        return {
+          likeStatus: 'DISLIKED',
+          video: {
+            ...prev.video,
+            dislikes: prev.video.dislikes + 1,
+          },
+        };
+      });
+    } else if (videoData.likeStatus === 'DISLIKED') {
+      setVideoData((prev) => {
+        if (!prev) return prev;
+        return {
+          likeStatus: 'NONE',
+          video: {
+            ...prev.video,
+            dislikes: prev.video.dislikes - 1,
+          },
+        };
+      });
+    }
+
+    // make API call
+    try {
+      const resp = await axiosWithToken.put(
+        `${import.meta.env.VITE_API_URL}/video/${videoData.video._id}/dislike`,
+      );
+      console.log({ resp });
+    } catch (error) {
+      console.error('Error disliking video', error);
+      // revert UI update on error
+      setVideoData(previousVideoData);
+      toast.error('Error disliking video');
+    }
   };
 
   return (

@@ -1,14 +1,25 @@
-import mongoose from "mongoose";
-import { envs } from ".";
+import mongoose from 'mongoose';
+import { envs } from '.';
+import { DeleteBucketIntelligentTieringConfigurationCommand } from '@aws-sdk/client-s3';
+
+export let db: any = null;
 
 export const connectDb = async () => {
   try {
-    await mongoose.connect(envs.mongodbUri, {
-      serverSelectionTimeoutMS: 5000,
-      maxPoolSize: 20,
-    });
-    console.log("Database connected");
+    if (db) {
+      console.log('Database already connected');
+      return;
+    }
+
+    try {
+      await mongoose.connect(envs.mongodbUri);
+      db = mongoose.connection;
+
+      console.log('Database connected');
+    } catch (error) {
+      console.log('Failed to connect to database', error);
+    }
   } catch (error) {
-    console.log("Failed to connect to database", error);
+    console.log('Failed to connect to database', error);
   }
 };

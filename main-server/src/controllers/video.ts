@@ -8,6 +8,7 @@ import { UserModel } from '../models/user';
 import mongoose from 'mongoose';
 import { envs } from '../configs';
 import { LikeModel } from '../models/like';
+import { db } from '../configs/db';
 
 export async function preSignedUrl(req: Request, res: Response): Promise<any> {
   try {
@@ -157,7 +158,6 @@ export const likeVideo = async (req: Request, res: Response): Promise<any> => {
     const { videoId } = req.params;
     const userId = req.userId;
 
-    const db = await mongoose.createConnection(envs.mongodbUri).asPromise();
     const session = await db.startSession();
 
     try {
@@ -166,41 +166,45 @@ export const likeVideo = async (req: Request, res: Response): Promise<any> => {
       const resp1 = await LikeModel.findOne({ videoId, userId }).session(
         session,
       );
-      console.log({ resp1 });
 
       if (resp1) {
         if (resp1.likeStatus === 'LIKED') {
-          // already liked
-          await session.commitTransaction();
-          return res.json({
-            success: true,
-          });
+          // already liked, remove like
+          const resp2 = await LikeModel.deleteOne({ userId, videoId }).session(
+            session,
+          );
+
+          const resp3 = await VideoJobModel.findOneAndUpdate(
+            { _id: videoId },
+            { $inc: { likes: -1 } },
+          ).session(session);
+
+          if (!resp3) {
+            throw new Error('Video not found');
+          }
         } else if (resp1.likeStatus === 'DISLIKED') {
           // change dislike to like
           const resp2 = await LikeModel.updateOne(
             { _id: resp1._id },
             { likeStatus: 'LIKED' },
           ).session(session);
-          console.log({ resp2 });
 
           const resp3 = await VideoJobModel.findOneAndUpdate(
             { _id: videoId },
             { $inc: { likes: 1, dislikes: -1 } },
           ).session(session);
-          console.log({ resp3 });
         } else if (resp1.likeStatus === 'NONE') {
+          // mostly wont be there, since we delete when unliked
           // change none to like
           const resp2 = await LikeModel.updateOne(
             { _id: resp1._id },
             { likeStatus: 'LIKED' },
           ).session(session);
-          console.log({ resp2 });
 
           const resp3 = await VideoJobModel.findOneAndUpdate(
             { _id: videoId },
             { $inc: { likes: 1 } },
           ).session(session);
-          console.log({ resp3 });
         }
       } else {
         // create new like
@@ -214,13 +218,11 @@ export const likeVideo = async (req: Request, res: Response): Promise<any> => {
           ],
           { session },
         );
-        console.log({ resp2 });
 
         const resp3 = await VideoJobModel.findOneAndUpdate(
           { _id: videoId },
           { $inc: { likes: 1 } },
         ).session(session);
-        console.log({ resp3 });
 
         if (!resp3) {
           throw new Error('Video not found');
@@ -234,7 +236,6 @@ export const likeVideo = async (req: Request, res: Response): Promise<any> => {
       throw error;
     } finally {
       await session.endSession();
-      await db.close();
     }
 
     return res.json({
@@ -257,7 +258,6 @@ export const dislikeVideo = async (
     const { videoId } = req.params;
     const userId = req.userId;
 
-    const db = await mongoose.createConnection(envs.mongodbUri).asPromise();
     const session = await db.startSession();
 
     try {
@@ -266,41 +266,44 @@ export const dislikeVideo = async (
       const resp1 = await LikeModel.findOne({ videoId, userId }).session(
         session,
       );
-      console.log({ resp1 });
 
       if (resp1) {
         if (resp1.likeStatus === 'DISLIKED') {
-          // already disliked
-          await session.commitTransaction();
-          return res.json({
-            success: true,
-          });
+          // already disliked, remove dislike
+          const resp2 = await LikeModel.deleteOne({ userId, videoId }).session(
+            session,
+          );
+
+          const resp3 = await VideoJobModel.findOneAndUpdate(
+            { _id: videoId },
+            { $inc: { dislikes: -1 } },
+          ).session(session);
+
+          if (!resp3) {
+            throw new Error('Video not found');
+          }
         } else if (resp1.likeStatus === 'LIKED') {
           // change like to dislike
           const resp2 = await LikeModel.updateOne(
             { _id: resp1._id },
             { likeStatus: 'DISLIKED' },
           ).session(session);
-          console.log({ resp2 });
 
           const resp3 = await VideoJobModel.findOneAndUpdate(
             { _id: videoId },
             { $inc: { likes: -1, dislikes: 1 } },
           ).session(session);
-          console.log({ resp3 });
         } else if (resp1.likeStatus === 'NONE') {
           // change none to dislike
           const resp2 = await LikeModel.updateOne(
             { _id: resp1._id },
             { likeStatus: 'DISLIKED' },
           ).session(session);
-          console.log({ resp2 });
 
           const resp3 = await VideoJobModel.findOneAndUpdate(
             { _id: videoId },
             { $inc: { dislikes: 1 } },
           ).session(session);
-          console.log({ resp3 });
         }
       } else {
         // create new dislike
@@ -314,13 +317,11 @@ export const dislikeVideo = async (
           ],
           { session },
         );
-        console.log({ resp2 });
 
         const resp3 = await VideoJobModel.findOneAndUpdate(
           { _id: videoId },
           { $inc: { dislikes: 1 } },
         ).session(session);
-        console.log({ resp3 });
 
         if (!resp3) {
           throw new Error('Video not found');
@@ -334,7 +335,6 @@ export const dislikeVideo = async (
       throw error;
     } finally {
       await session.endSession();
-      await db.close();
     }
 
     return res.json({
