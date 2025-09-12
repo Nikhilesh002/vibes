@@ -34,21 +34,33 @@ function Video() {
   const handleLike = useCallback(async (): Promise<IVideoData | null> => {
     if (!videoData) return null;
     // API call for like
-    const resp = await axiosWithToken.put(
-      `${import.meta.env.VITE_API_URL}/video/${videoData.video._id}/like`,
-    );
-    console.log({ resp });
-    return videoData; // Actual updated data will be handled via cache update
+    try {
+      await axiosWithToken.put(
+        `${import.meta.env.VITE_API_URL}/video/${videoData.video._id}/like`,
+      );
+
+      return videoData; // Actual updated data will be handled via cache update
+    } catch (error) {
+      console.error('Like error:', error);
+      toast.error('Error liking video');
+      return null;
+    }
   }, [videoData]);
 
   const handleDislike = useCallback(async (): Promise<IVideoData | null> => {
     if (!videoData) return null;
     // API call for dislike
-    const resp = await axiosWithToken.put(
-      `${import.meta.env.VITE_API_URL}/video/${videoData.video._id}/dislike`,
-    );
-    console.log({ resp });
-    return videoData;
+    try {
+      await axiosWithToken.put(
+        `${import.meta.env.VITE_API_URL}/video/${videoData.video._id}/dislike`,
+      );
+
+      return videoData;
+    } catch (error) {
+      console.error('Dislike error:', error);
+      toast.error('Error disliking video');
+      return null;
+    }
   }, [videoData]);
 
   const mutation = useMutation({
