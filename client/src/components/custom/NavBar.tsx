@@ -40,7 +40,6 @@ const NavBar: React.FC = () => {
 
   const navLinks = [
     { to: '/', label: 'Home' },
-    { to: '/videos', label: 'Videos' },
     { to: '/video-upload', label: 'Upload Videos' },
     userData.user
       ? { to: '/signin', label: 'Signout', onClick: handleSignout }

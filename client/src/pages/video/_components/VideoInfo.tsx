@@ -1,12 +1,18 @@
 import { Button } from '@/components/ui/button';
 import { formatViews } from '@/lib/formatFuncs';
 import { IVideoData } from '@/lib/types';
+import { UseMutationResult } from '@tanstack/react-query';
 import { Download, Share2, ThumbsDown, ThumbsUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface VideoInfoProps {
   videoData: IVideoData;
-  mutation: any
+  mutation: UseMutationResult<
+    IVideoData | null,
+    Error,
+    'LIKE' | 'DISLIKE',
+    unknown
+  >;
 }
 
 export default function VideoInfo({ videoData, mutation }: VideoInfoProps) {
