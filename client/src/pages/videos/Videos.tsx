@@ -21,7 +21,7 @@ function Videos() {
         `${import.meta.env.VITE_API_URL}/video`,
       );
 
-      return resp.data.user.videoJobIds;
+      return resp.data.videos;
     },
     staleTime: 1000 * 60 * 2, // 5 minutes
   });

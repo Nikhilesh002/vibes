@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export interface IVideoJob {
+export interface IVideo {
   tempUrl: string;
   blobName: string;
   status: 'IN_QUEUE' | 'DONE' | 'PENDING' | 'FAILED';
@@ -16,14 +16,14 @@ export interface IVideoJob {
   likes: number;
   dislikes: number;
 
-  comments: Schema.Types.ObjectId[];
+  comment: Schema.Types.ObjectId;
 
   userId: Schema.Types.ObjectId;
 }
 
-export interface IVideoJobDoc extends IVideoJob, Document {}
+export interface IVideoDoc extends IVideo, Document {}
 
-const videoJobSchema = new mongoose.Schema(
+const videoSchema = new mongoose.Schema(
   {
     tempUrl: { type: String, required: true, index: true },
     blobName: { type: String, required: true, index: true },
@@ -46,11 +46,11 @@ const videoJobSchema = new mongoose.Schema(
     likes: { type: Number, default: 0 },
     dislikes: { type: Number, default: 0 },
 
-    comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
+    comment: { type: Schema.Types.ObjectId, ref: 'Comments' },
   },
   {
     timestamps: true,
   },
 );
 
-export const VideoJobModel = mongoose.model('VideoJob', videoJobSchema);
+export const VideoModel = mongoose.model('Video', videoSchema);

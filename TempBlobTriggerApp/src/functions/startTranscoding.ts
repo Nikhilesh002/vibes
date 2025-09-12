@@ -20,12 +20,12 @@ export async function startTranscoding(
 
   console.log({
     videoUrl: context.triggerMetadata.uri as string,
-    videoJobId: videoMetadata.videoid,
+    videoId: videoMetadata.videoid,
   });
 
   await createDockerContainer({
     videoUrl: context.triggerMetadata.uri as string,
-    videoJobId: videoMetadata.videoid,
+    videoId: videoMetadata.videoid,
   });
 
   console.log('Started container for transcoding job');
@@ -39,7 +39,7 @@ app.storageBlob('startTranscoding', {
 
 interface IProcessJob {
   videoUrl: string;
-  videoJobId: string;
+  videoId: string;
 }
 
 // spawn-> nikhilesh002/vibes-transcoder:latest
@@ -79,8 +79,8 @@ export async function createDockerContainer(jobData: IProcessJob) {
             value: process.env.MONGODB_URI,
           },
           {
-            name: 'VIDEO_JOB_ID',
-            value: String(jobData.videoJobId),
+            name: 'VIDEO_ID',
+            value: String(jobData.videoId),
           },
           {
             name: 'AZURE_CLIENT_ID',

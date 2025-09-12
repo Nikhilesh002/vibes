@@ -12,7 +12,7 @@ const logsSchema = new mongoose.Schema(
   {
     videoId: {
       type: Schema.Types.ObjectId,
-      ref: 'VideoJob',
+      ref: 'Video',
       required: true,
       index: true,
     },

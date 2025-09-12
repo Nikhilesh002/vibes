@@ -18,7 +18,7 @@ const commentSchema = new mongoose.Schema(
   {
     videoId: {
       type: Schema.Types.ObjectId,
-      ref: 'VideoJob',
+      ref: 'Video',
       required: true,
       index: true,
     },
@@ -32,7 +32,7 @@ const commentSchema = new mongoose.Schema(
     likes: { type: Number, default: 0 },
     dislikes: { type: Number, default: 0 },
     star: { type: Boolean, default: false },
-    comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
+    comments: [{ type: Schema.Types.ObjectId, ref: 'Comments' }],
   },
   {
     timestamps: true,
@@ -40,6 +40,6 @@ const commentSchema = new mongoose.Schema(
 );
 
 export const CommentModel = mongoose.model<ICommentDoc>(
-  'Comment',
+  'Comments',
   commentSchema,
 );

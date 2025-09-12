@@ -3,7 +3,7 @@ import {
   getPresignedUrl,
   makePresignedUrl,
 } from '../utils/azureBlob/makePresignedUrl';
-import { VideoJobModel } from '../models/videoJob';
+import { VideoModel } from '../models/video';
 import { UserModel } from '../models/user';
 import { LikeModel } from '../models/like';
 import { db } from '../configs/db';
@@ -29,7 +29,7 @@ export async function preSignedUrl(req: Request, res: Response): Promise<any> {
     console.log({ videoUrl, videoSasKey, thumbnailUrl, thumbnailSasKey });
 
     // store url in db
-    const resp = await VideoJobModel.create({
+    const resp = await VideoModel.create({
       blobName: videoKey,
       title,
       description,
@@ -42,11 +42,6 @@ export async function preSignedUrl(req: Request, res: Response): Promise<any> {
       completedAt: 0,
       userId: req.userId,
     });
-
-    await UserModel.updateOne(
-      { _id: req.userId },
-      { $push: { videoJobIds: resp._id } },
-    );
 
     return res.status(200).json({
       success: true,
@@ -67,34 +62,21 @@ export async function preSignedUrl(req: Request, res: Response): Promise<any> {
 
 export const allVideos = async (req: Request, res: Response): Promise<any> => {
   try {
-    let user = await UserModel.findOne({ _id: req.userId }).populate({
-      path: 'videoJobIds',
-      match: {
-        status: 'DONE',
-      },
-    });
-    if (!user) {
-      console.error('User not found!!');
-      return res.status(400).json({
-        success: false,
-      });
-    }
+    const videos = await VideoModel.find({})
+      .limit(30)
+      .select('-logs -__v -transcodedVideoUrl -tempUrl');
 
-    user.videoJobIds.forEach((video: any) => {
+    console.log({ videos });
+
+    videos.forEach((video: any) => {
       if (!video) return;
       if (video.thumbnailUrl.includes('.blob.core.windows.net/'))
         video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl, 'r');
-
-      if (video.transcodedVideoUrl.includes('.blob.core.windows.net/'))
-        video.transcodedVideoUrl = getPresignedUrl(
-          video.transcodedVideoUrl,
-          'r',
-        );
     });
 
     return res.json({
       success: true,
-      user,
+      videos,
     });
   } catch (error) {
     console.error('Error getting videos', error);
@@ -113,7 +95,7 @@ export const getVideoById = async (
     const { videoId } = req.params;
     const userId = req.userId;
 
-    const video = await VideoJobModel.findByIdAndUpdate(videoId, {
+    const video = await VideoModel.findByIdAndUpdate(videoId, {
       $inc: { views: 1 },
     });
     if (!video) {
@@ -171,7 +153,7 @@ export const likeVideo = async (req: Request, res: Response): Promise<any> => {
             session,
           );
 
-          const resp3 = await VideoJobModel.findOneAndUpdate(
+          const resp3 = await VideoModel.findOneAndUpdate(
             { _id: videoId },
             { $inc: { likes: -1 } },
           ).session(session);
@@ -186,7 +168,7 @@ export const likeVideo = async (req: Request, res: Response): Promise<any> => {
             { likeStatus: 'LIKED' },
           ).session(session);
 
-          const resp3 = await VideoJobModel.findOneAndUpdate(
+          const resp3 = await VideoModel.findOneAndUpdate(
             { _id: videoId },
             { $inc: { likes: 1, dislikes: -1 } },
           ).session(session);
@@ -198,7 +180,7 @@ export const likeVideo = async (req: Request, res: Response): Promise<any> => {
             { likeStatus: 'LIKED' },
           ).session(session);
 
-          const resp3 = await VideoJobModel.findOneAndUpdate(
+          const resp3 = await VideoModel.findOneAndUpdate(
             { _id: videoId },
             { $inc: { likes: 1 } },
           ).session(session);
@@ -216,7 +198,7 @@ export const likeVideo = async (req: Request, res: Response): Promise<any> => {
           { session },
         );
 
-        const resp3 = await VideoJobModel.findOneAndUpdate(
+        const resp3 = await VideoModel.findOneAndUpdate(
           { _id: videoId },
           { $inc: { likes: 1 } },
         ).session(session);
@@ -271,7 +253,7 @@ export const dislikeVideo = async (
             session,
           );
 
-          const resp3 = await VideoJobModel.findOneAndUpdate(
+          const resp3 = await VideoModel.findOneAndUpdate(
             { _id: videoId },
             { $inc: { dislikes: -1 } },
           ).session(session);
@@ -286,7 +268,7 @@ export const dislikeVideo = async (
             { likeStatus: 'DISLIKED' },
           ).session(session);
 
-          const resp3 = await VideoJobModel.findOneAndUpdate(
+          const resp3 = await VideoModel.findOneAndUpdate(
             { _id: videoId },
             { $inc: { likes: -1, dislikes: 1 } },
           ).session(session);
@@ -297,7 +279,7 @@ export const dislikeVideo = async (
             { likeStatus: 'DISLIKED' },
           ).session(session);
 
-          const resp3 = await VideoJobModel.findOneAndUpdate(
+          const resp3 = await VideoModel.findOneAndUpdate(
             { _id: videoId },
             { $inc: { dislikes: 1 } },
           ).session(session);
@@ -315,7 +297,7 @@ export const dislikeVideo = async (
           { session },
         );
 
-        const resp3 = await VideoJobModel.findOneAndUpdate(
+        const resp3 = await VideoModel.findOneAndUpdate(
           { _id: videoId },
           { $inc: { dislikes: 1 } },
         ).session(session);

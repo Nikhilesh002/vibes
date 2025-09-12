@@ -8,5 +8,5 @@ export interface IBucket {
 
 export interface IProcessJob {
   videoUrl: string;
-  videoJobId: Schema.Types.ObjectId;
+  videoId: Schema.Types.ObjectId;
 }

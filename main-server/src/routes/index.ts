@@ -3,6 +3,7 @@ import userRouter from "./user";
 import videoRouter from "./video";
 import logsRouter from "./logs";
 import subscriptionRouter from "./subscription";
+import commentRouter from "./comments";
 
 const router:any = Router();
 
@@ -10,5 +11,6 @@ router.use("/user", userRouter);
 router.use("/video", videoRouter);
 router.use("/logs", logsRouter);
 router.use("/subscription", subscriptionRouter);
+router.use("/comments", commentRouter);
 
 export default router;
