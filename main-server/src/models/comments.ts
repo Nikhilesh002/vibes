@@ -2,15 +2,15 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IComment {
   videoId: Schema.Types.ObjectId;
+  parentCommentId: Schema.Types.ObjectId | null;
+
   userId: Schema.Types.ObjectId;
+  username: string;
 
   content: string;
   likes: number;
   dislikes: number;
   star: boolean;
-  type: 'BASE_COMMENT' | 'COMMENT';
-
-  comments: IComment[];
 }
 
 export interface ICommentDoc extends IComment, Document {}
@@ -29,12 +29,16 @@ const commentSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    username: { type: String, required: true },
+    parentCommentId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Comment',
+      default: null,
+    },
     content: { type: String, required: true },
-    type: { type: String, required: true, default: 'COMMENT' },
     likes: { type: Number, default: 0 },
     dislikes: { type: Number, default: 0 },
     star: { type: Boolean, default: false },
-    comments: [{ type: Schema.Types.ObjectId, ref: 'Comments' }],
   },
   {
     timestamps: true,

@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
-import { LogsModel } from '../models/logs';
+import { VideoTranscodingLogsModel } from '../models/videoTranscodingLogs';
 
 export const getLogs = async (req: Request, res: Response): Promise<any> => {
   try {
-    const logs = await LogsModel.find({ userId: req.userId });
+    const logs = await VideoTranscodingLogsModel.find({
+      videoId: req.params.videoId,
+    });
     return res.status(200).json({
       success: true,
       logs,
