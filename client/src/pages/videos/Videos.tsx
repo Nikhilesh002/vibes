@@ -69,7 +69,11 @@ function Videos() {
               <div className="flex font-light text-gray-300 text-sm">
                 <p>{formatViews(video.views)} views</p>
                 <span className="mx-2">•</span>
-                <p className="">{timeElapsed(video.completedAt)}</p>
+                <p className="">
+                  {video.status === 'PENDING'
+                    ? 'Processing...'
+                    : timeElapsed(video.completedAt)}
+                </p>
               </div>
             </CardFooter>
           </Card>

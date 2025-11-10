@@ -100,7 +100,9 @@ export default function VideoInfo({ videoData, mutation }: VideoInfoProps) {
 
           <div className="">
             <p className="">
-              {new Date(videoData.video.completedAt).toDateString()}
+              {videoData.video.status === 'PENDING'
+                ? 'Processing...'
+                : new Date(videoData.video.completedAt).toDateString()}
             </p>
           </div>
 
