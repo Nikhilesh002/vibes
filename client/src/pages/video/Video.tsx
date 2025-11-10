@@ -72,7 +72,9 @@ function Video() {
     onMutate: async (buttonType) => {
       if (!videoData) return {};
       // Cancel any outgoing refetches so they don't overwrite our optimistic update
-      await queryClient.cancelQueries(['video-data', videoId ?? '']);
+      await queryClient.cancelQueries({
+        queryKey: ['video-data', videoId ?? ''],
+      });
 
       // Snapshot the previous value
       const previousVideoData = queryClient.getQueryData<IVideoData>([
@@ -128,7 +130,9 @@ function Video() {
     },
     onSettled: () => {
       // Always refetch after error or success to ensure data sync
-      queryClient.invalidateQueries(['video-data', videoId ?? '']);
+      queryClient.invalidateQueries({
+        queryKey: ['video-data', videoId ?? ''],
+      });
     },
   });
 
