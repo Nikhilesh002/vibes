@@ -16,8 +16,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// TODO context kya hi bhai??? in depth
-
 func main() {
 	allLogs := ""
 
