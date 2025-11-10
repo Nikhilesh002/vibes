@@ -9,11 +9,13 @@ export const getComments = async (
   try {
     const { videoId } = req.params;
 
-    const comments = await CommentModel.find({ videoId }).populate('userId', 'username avatarUrl');
+    const comments = await CommentModel.find({ videoId })
+      .populate('userId', 'username avatarUrl')
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
-      comments
+      comments,
     });
   } catch (error) {
     return res.status(500).json({

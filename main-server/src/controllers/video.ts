@@ -96,7 +96,7 @@ export const getVideoById = async (
 
     const video = await VideoModel.findByIdAndUpdate(videoId, {
       $inc: { views: 1 },
-    });
+    }).populate('userId', 'username avatarUrl');
     if (!video) {
       console.error('Video not found!!');
       return res.status(400).json({
@@ -117,9 +117,17 @@ export const getVideoById = async (
     // if (video.transcodedVideoUrl.includes('.blob.core.windows.net/'))
     //   video.transcodedVideoUrl = getPresignedUrl(video.transcodedVideoUrl, 'r');
 
+    // populate returns the user document under video.userId; cast to any to access fields
+    const populatedUser: any = video.userId;
+
     return res.json({
       success: true,
-      video,
+      video: {
+        ...video.toObject(),
+        userId: populatedUser._id,
+        creatorName: populatedUser.username,
+        creatorAvatar: populatedUser.avatarUrl,
+      },
       likeStatus: like ? like.likeStatus : 'NONE',
     });
   } catch (error) {

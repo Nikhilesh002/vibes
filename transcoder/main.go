@@ -196,10 +196,25 @@ func main() {
 				"completedAt":        time.Now(),
 				"updatedAt":          time.Now(),
 				"status":             "DONE",
-				"logs":               allLogs,
 			},
 		},
 	)
+
+	// 5. save logs in mongodb
+	defer func() {
+		_, err = mdb.Collection("videotranscodinglogs").InsertOne(
+			context.TODO(),
+			bson.M{
+				"videoId":   videoObjId,
+				"logs":      allLogs,
+				"createdAt": time.Now(),
+			},
+		)
+		if err != nil {
+			addLog("Failed to insert logs into DB", &allLogs)
+			panic(err)
+		}
+	}()
 
 	if err != nil {
 		addLog("Failed to insert final transcoded urls", &allLogs)

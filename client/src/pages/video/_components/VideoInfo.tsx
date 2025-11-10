@@ -33,7 +33,16 @@ export default function VideoInfo({ videoData, mutation }: VideoInfoProps) {
 
         <div className="flex items-center justify-between mt-2">
           <div className="">
-            <span className="mr-2 font-semibold">{videoData.video.userId}</span>
+            <img
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                videoData.video.creatorName,
+              )}&background=random&size=20`}
+              alt={videoData.video.creatorName}
+              className="w-10 h-10 rounded-full inline-block mr-2"
+            />
+            <span className="mr-2 font-semibold">
+              {videoData.video.creatorName}
+            </span>
             <Button className="text-sm rounded-3xl" onClick={handleSubscribe}>
               Subscribe
             </Button>
@@ -92,13 +101,10 @@ export default function VideoInfo({ videoData, mutation }: VideoInfoProps) {
         </div>
       </div>
 
-      <div className="border bg-gray-800 border-gray-700 rounded-md p-4 mt-4 shadow-lg">
-        <div className="text-gray-400 flex space-x-3 font-medium text-sm">
-          <div className="">
-            <span className="">{formatViews(videoData.video.views)} views</span>
-          </div>
-
-          <div className="">
+      <div className="border bg-[#FFFFFF1A] rounded-md p-4 mt-4 shadow-lg">
+        <div className="text-white flex space-x-3 font-medium text-sm">
+          <div className="flex space-x-2 font-bold">
+            <div className="">{formatViews(videoData.video.views)} views</div>
             <p className="">
               {videoData.video.status === 'PENDING'
                 ? 'Processing...'

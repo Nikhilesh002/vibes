@@ -61,6 +61,7 @@ function Comments({ videoId }: { videoId: string }) {
     }
   }, [videoId, newComment, fetchComments]);
 
+  // TODO: use react-query
   useEffect(() => {
     fetchComments();
   }, [videoId, fetchComments]);

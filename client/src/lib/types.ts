@@ -13,7 +13,10 @@ export interface IVideo extends IUploadVideoForm {
   transcodedVideoUrl: string;
   thumbnailUrl: string;
   completedAt: number;
-  userId: string;
+
+  creatorId: string;
+  creatorName: string;
+  creatorAvatar: string;
 
   views: number;
   likes: number;
