@@ -4,7 +4,6 @@ import {
   makePresignedUrl,
 } from '../utils/azureBlob/makePresignedUrl';
 import { VideoModel } from '../models/video';
-import { UserModel } from '../models/user';
 import { LikeModel } from '../models/like';
 import { db } from '../configs/db';
 

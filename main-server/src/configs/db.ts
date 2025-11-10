@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import { envs } from '.';
-import { DeleteBucketIntelligentTieringConfigurationCommand } from '@aws-sdk/client-s3';
 
 export let db: any = null;
 

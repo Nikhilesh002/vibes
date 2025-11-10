@@ -8,6 +8,7 @@ export interface IComment {
   likes: number;
   dislikes: number;
   star: boolean;
+  type: 'BASE_COMMENT' | 'COMMENT';
 
   comments: IComment[];
 }
@@ -29,6 +30,7 @@ const commentSchema = new mongoose.Schema(
       index: true,
     },
     content: { type: String, required: true },
+    type: { type: String, required: true, default: 'COMMENT' },
     likes: { type: Number, default: 0 },
     dislikes: { type: Number, default: 0 },
     star: { type: Boolean, default: false },

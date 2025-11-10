@@ -16,8 +16,6 @@ export interface IVideo {
   likes: number;
   dislikes: number;
 
-  comment: Schema.Types.ObjectId;
-
   userId: Schema.Types.ObjectId;
 }
 
@@ -45,8 +43,6 @@ const videoSchema = new mongoose.Schema(
     views: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },
     dislikes: { type: Number, default: 0 },
-
-    comment: { type: Schema.Types.ObjectId, ref: 'Comments' },
   },
   {
     timestamps: true,

@@ -179,7 +179,7 @@ func main() {
 	mdb := mongoClient.Database("vibes")
 
 	// convert to ObjectId
-	videoJobObjId, err := primitive.ObjectIDFromHex(myEnvs.videoJobId)
+	videoObjId, err := primitive.ObjectIDFromHex(myEnvs.videoId)
 	if err != nil {
 		panic(err)
 	}
@@ -187,10 +187,10 @@ func main() {
 	// 4. save info in mdb
 	addLog("Link of transcoded video: "+transcodedVideoUrl, &allLogs)
 
-	mdbRes, err := mdb.Collection("videojobs").UpdateOne(
+	mdbRes, err := mdb.Collection("videos").UpdateOne(
 		context.TODO(),
 		bson.M{
-			"_id": videoJobObjId,
+			"_id": videoObjId,
 		},
 		bson.M{
 			"$set": bson.M{
