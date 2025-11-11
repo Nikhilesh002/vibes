@@ -5,10 +5,25 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
 
+// addLog appends a message to the provided logs pointer and prints it.
+// You can replace this with your project's logging mechanism.
+func addLog(msg string, allLogs *string) {
+	if allLogs == nil {
+		fmt.Println(msg)
+		return
+	}
+	*allLogs = *allLogs + msg + "\n"
+	fmt.Println(msg)
+}
+
+// transcode - transcodes inputFileName found under "temp/<inputFileName>"
+// into a 3-stream HLS ladder under inpFileNameWithoutExt/output_0..2
+// allLogs is a pointer to a string to which logs are appended.
 func transcode(inputFileName string, inpFileNameWithoutExt string, allLogs *string) {
 	// 1) probe input file using ffprobe (temp/ + inputFileName)
 	inputPath := "temp/" + inputFileName
@@ -176,4 +191,18 @@ func transcode(inputFileName string, inpFileNameWithoutExt string, allLogs *stri
 
 	addLog("ffmpeg output:\n"+combined.String(), allLogs)
 	addLog("Transcoding completed successfully.", allLogs)
+}
+
+func main() {
+	// Example usage - change to your actual filenames/paths
+	var logs string
+	// input file placed in temp/<name>.mp4
+	// and we use absolute path without extension as output base
+	inputFileName := "ratham2.mp4" // file under temp/
+	inpFileNameWithoutExt := "/home/nikki/Downloads/ratham2"
+
+	transcode(inputFileName, inpFileNameWithoutExt, &logs)
+
+	// Save logs to a file for later inspection (optional)
+	_ = os.WriteFile(filepath.Join(inpFileNameWithoutExt, "transcode.log"), []byte(logs), 0644)
 }
