@@ -98,6 +98,24 @@ func transcode(inputFileName string, inpFileNameWithoutExt string, allLogs *stri
 		}
 	}
 
+	// Check if input has audio stream
+	cmdAudioProbe := exec.Command("ffprobe",
+		"-v", "error",
+		"-select_streams", "a",
+		"-show_entries", "stream=index",
+		"-of", "csv=p=0",
+		inputPath,
+	)
+	audioProbeOut, _ := cmdAudioProbe.Output()
+	hasAudio := strings.TrimSpace(string(audioProbeOut)) != ""
+
+	var varStreamMap string
+	if hasAudio {
+		varStreamMap = "v:0,a:0 v:1,a:1 v:2,a:2"
+	} else {
+		varStreamMap = "v:0 v:1 v:2"
+	}
+
 	// Build ffmpeg command (bitrate-constrained, not CRF)
 	// Using 0:a? so missing audio won't fail
 	filterComplex := `[0:v]split=3[v1][v2][v3];` +
@@ -148,7 +166,8 @@ func transcode(inputFileName string, inpFileNameWithoutExt string, allLogs *stri
 		"-hls_playlist_type", "vod",
 		"-hls_segment_filename", inpFileNameWithoutExt + "/output_%v/seg_%03d.ts",
 		"-master_pl_name", "master.m3u8",
-		"-var_stream_map", "v:0,a:0 v:1,a:1 v:2,a:2",
+		"-var_stream_map", varStreamMap,
+
 		inpFileNameWithoutExt + "/output_%v/prog.m3u8",
 	}
 
