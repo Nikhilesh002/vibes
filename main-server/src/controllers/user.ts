@@ -1,5 +1,5 @@
 import { IUserDoc, UserModel } from "../models/user";
-import { compareHash, createHash } from "../utils/server/bcryptjs";
+import { compareHash, createHash } from "../utils/server/argon2";
 import { logger } from "../utils/server/logger";
 import { COOKIE_EXPIRY_DURATION, makeToken } from "../utils/server/jwt";
 import { Response, Request } from "express";
