@@ -1,12 +1,4 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { axiosWithToken } from "@/lib/axiosWithToken";
@@ -49,57 +41,66 @@ function Signup() {
   };
 
   return (
-    <div className="h-screen pb-20 flex justify-center items-center">
-      <Card className="w-[450px] shadow-xs shadow-gray-400">
-        <CardHeader>
-          <CardTitle>Signup</CardTitle>
-          <CardDescription>Welcome back!!</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent>
-            <div className="grid w-full items-center gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  id="username"
-                  placeholder="Enter your username"
-                />
-              </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="username">Email</Label>
-                <Input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  id="Email"
-                  placeholder="Enter your Email"
-                />
-              </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  type="password"
-                  id="password"
-                  placeholder="Enter your password"
-                />
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between mt-5">
-            <Link
-              to={"/signin"}
-              className="text-sm underline text-blue-400 hover:text-blue-500"
-            >
-              Already have an account?
-            </Link>
+    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center py-12">
+      <div className="w-full max-w-sm">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Get started with Vibes today
+          </p>
+        </div>
 
-            <Button type="submit">Signup</Button>
-          </CardFooter>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              id="username"
+              placeholder="Choose a username"
+              className="h-10"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              className="h-10"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              id="password"
+              placeholder="Create a password"
+              className="h-10"
+            />
+          </div>
+
+          <Button type="submit" className="h-10 w-full">
+            Create account
+          </Button>
         </form>
-      </Card>
+
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link
+            to="/signin"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            Sign in
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

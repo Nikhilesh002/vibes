@@ -28,6 +28,7 @@ export interface IVideo extends IUploadVideoForm {
 export interface IVideoData {
   video: IVideo;
   likeStatus: 'LIKED' | 'DISLIKED' | 'NONE';
+  streamingSasToken?: string;
 }
 
 export interface IComment {

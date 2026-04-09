@@ -1,12 +1,4 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { axiosWithToken } from "@/lib/axiosWithToken";
@@ -54,47 +46,54 @@ function Signin() {
   };
 
   return (
-    <div className="h-screen pb-20 flex justify-center items-center">
-      <Card className="w-[450px] shadow-xs shadow-gray-400">
-        <CardHeader>
-          <CardTitle>Signin</CardTitle>
-          <CardDescription>Welcome back!!</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent>
-            <div className="grid w-full items-center gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="identifier">Enter Username or Email</Label>
-                <Input
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  id="identifier"
-                  placeholder="Enter your Username or Email"
-                />
-              </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  type="password"
-                  id="password"
-                  placeholder="Enter your password"
-                />
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between mt-5">
-            <Link
-              to={"/signup"}
-              className="text-sm underline text-blue-400 hover:text-blue-500"
-            >
-              Dont have an account?
-            </Link>
-            <Button type="submit">Signin</Button>
-          </CardFooter>
+    <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center py-12">
+      <div className="w-full max-w-sm">
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Sign in to your account to continue
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="identifier">Username or Email</Label>
+            <Input
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              id="identifier"
+              placeholder="Enter your username or email"
+              className="h-10"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              type="password"
+              id="password"
+              placeholder="Enter your password"
+              className="h-10"
+            />
+          </div>
+
+          <Button type="submit" className="h-10 w-full">
+            Sign in
+          </Button>
         </form>
-      </Card>
+
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          Don't have an account?{" "}
+          <Link
+            to="/signup"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            Sign up
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

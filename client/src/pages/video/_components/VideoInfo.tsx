@@ -25,107 +25,105 @@ export default function VideoInfo({ videoData, mutation }: VideoInfoProps) {
   };
 
   return (
-    <div className="">
-      <div className="flex-col">
-        <div className="">
-          <h1 className="text-2xl font-bold mb-1">{videoData.video.title}</h1>
+    <div className="mt-4 space-y-4">
+      {/* Title */}
+      <h1 className="text-xl font-semibold leading-tight">{videoData.video.title}</h1>
+
+      {/* Creator + Actions row */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        {/* Creator info */}
+        <div className="flex items-center gap-3">
+          <img
+            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+              videoData.video.creatorName,
+            )}&background=random&size=40`}
+            alt={videoData.video.creatorName}
+            className="h-10 w-10 rounded-full"
+          />
+          <div>
+            <p className="text-sm font-medium leading-none">{videoData.video.creatorName}</p>
+          </div>
+          <Button size="sm" className="ml-2 rounded-full" onClick={handleSubscribe}>
+            Subscribe
+          </Button>
         </div>
 
-        <div className="flex items-center justify-between mt-2">
-          <div className="">
-            <img
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                videoData.video.creatorName,
-              )}&background=random&size=20`}
-              alt={videoData.video.creatorName}
-              className="w-10 h-10 rounded-full inline-block mr-2"
-            />
-            <span className="mr-2 font-semibold">
-              {videoData.video.creatorName}
-            </span>
-            <Button className="text-sm rounded-3xl" onClick={handleSubscribe}>
-              Subscribe
-            </Button>
+        {/* Action buttons */}
+        <div className="flex items-center gap-2">
+          {/* Like / Dislike pill */}
+          <div className="inline-flex items-center overflow-hidden rounded-full border border-border">
+            <button
+              onClick={() => mutation.mutate('LIKE')}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-sm transition-colors hover:bg-accent"
+            >
+              <ThumbsUp
+                className="h-4 w-4"
+                fill={videoData.likeStatus === 'LIKED' ? 'currentColor' : 'none'}
+              />
+              <span>{formatViews(videoData.video.likes)}</span>
+            </button>
+            <div className="h-5 w-px bg-border" />
+            <button
+              onClick={() => mutation.mutate('DISLIKE')}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 text-sm transition-colors hover:bg-accent"
+            >
+              <ThumbsDown
+                className="h-4 w-4"
+                fill={videoData.likeStatus === 'DISLIKED' ? 'currentColor' : 'none'}
+              />
+              <span>{formatViews(videoData.video.dislikes)}</span>
+            </button>
           </div>
 
-          <div className="flex space-x-4 ml-auto text-sm text-gray-200">
-            <div className="bg-gray-800 border border-gray-700 rounded-md">
-              <button
-                onClick={() => mutation.mutate('LIKE')}
-                className="p-2 cursor-pointer"
-              >
-                <ThumbsUp
-                  fill={videoData.likeStatus === 'LIKED' ? 'white' : 'none'}
-                  className={`inline-block mr-1 w-5 h-5 `}
-                />
-                <span>{videoData.video.likes}</span>
-              </button>
-            </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 rounded-full"
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              toast.success('Link copied to clipboard!');
+            }}
+          >
+            <Share2 className="h-4 w-4" />
+            Share
+          </Button>
 
-            <div className="bg-gray-800 border border-gray-700 rounded-md">
-              <button
-                onClick={() => mutation.mutate('DISLIKE')}
-                className="p-2 cursor-pointer"
-              >
-                <ThumbsDown
-                  fill={videoData.likeStatus === 'DISLIKED' ? 'white' : 'none'}
-                  className="inline-block mr-1 w-5 h-5"
-                />
-                <span>{videoData.video.dislikes}</span>
-              </button>
-            </div>
-
-            <div className="bg-gray-800 border border-gray-700 rounded-md">
-              <button
-                className="p-2 cursor-pointer"
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  toast.success('Link copied to clipboard!');
-                }}
-              >
-                <Share2 className="inline-block w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="bg-gray-800 border border-gray-700 rounded-md hover:cursor-pointer">
-              <button
-                className="hover:cursor-pointer p-2"
-                onClick={() => {
-                  alert('Download feature coming soon!');
-                }}
-              >
-                <Download className="inline-block w-5 h-5" />
-              </button>
-            </div>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 rounded-full"
+            onClick={() => alert('Download feature coming soon!')}
+          >
+            <Download className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      <div className="border bg-[#FFFFFF1A] rounded-md p-4 mt-4 shadow-lg">
-        <div className="text-white flex space-x-3 font-medium text-sm">
-          <div className="flex space-x-2 font-bold">
-            <div className="">{formatViews(videoData.video.views)} views</div>
-            <p className="">
-              {videoData.video.status === 'PENDING'
-                ? 'Processing...'
-                : new Date(videoData.video.completedAt).toDateString()}
-            </p>
-          </div>
-
-          <div className="">
-            {videoData.video.tags && videoData.video.tags.length > 0 ? (
-              videoData.video.tags.map((tag, index) => (
-                <span key={index} className="mr-1 text-blue-500">
+      {/* Description card */}
+      <div className="rounded-xl bg-muted/50 p-4">
+        <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
+          <span>{formatViews(videoData.video.views)} views</span>
+          <span className="text-muted-foreground">&#183;</span>
+          <span className="text-muted-foreground">
+            {videoData.video.status === 'PENDING'
+              ? 'Processing...'
+              : new Date(videoData.video.completedAt).toDateString()}
+          </span>
+          {videoData.video.tags && videoData.video.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {videoData.video.tags.map((tag, index) => (
+                <span key={index} className="text-primary/80">
                   #{tag}
                 </span>
-              ))
-            ) : (
-              <></>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
-
-        <p className="mb-4">{videoData.video.description}</p>
+        {videoData.video.description && (
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {videoData.video.description}
+          </p>
+        )}
       </div>
     </div>
   );

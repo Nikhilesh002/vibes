@@ -7,6 +7,7 @@ import axios from 'axios';
 import {
   EllipsisVertical,
   Heart,
+  MessageCircle,
   Smile,
   ThumbsDown,
   ThumbsUp,
@@ -27,6 +28,7 @@ function Comments({ videoId }: { videoId: string }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const emojiRef = useRef<HTMLDivElement | null>(null);
 
@@ -54,6 +56,7 @@ function Comments({ videoId }: { videoId: string }) {
       const data = res.data;
       if (data.success) {
         setNewComment('');
+        setIsFocused(false);
         fetchComments();
       }
     } catch (error) {
@@ -91,29 +94,33 @@ function Comments({ videoId }: { videoId: string }) {
   }, [showEmojiPicker]);
 
   return (
-    <div className="p-1">
-      <div className="">
-        <h2 className="text-xl font-semibold mb-4 mt-4">Comments</h2>
-      </div>
+    <div className="mt-8">
+      <h2 className="text-base font-semibold">
+        {comments.length} Comment{comments.length !== 1 ? 's' : ''}
+      </h2>
 
-      <div className="">
-        <div className="flex flex-col space-x-4 mb-5">
-          <Textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            className="w-full p-2 rounded mb-2 focus:outline-1"
-            placeholder="Type your comment here..."
-          ></Textarea>
-          <div className="flex items-center justify-between">
+      {/* Comment input */}
+      <div className="mt-4">
+        <Textarea
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          className="min-h-[44px] resize-none rounded-lg border-border bg-transparent text-sm placeholder:text-muted-foreground"
+          placeholder="Add a comment..."
+          rows={isFocused ? 3 : 1}
+        />
+
+        {isFocused && (
+          <div className="mt-2 flex items-center justify-between">
             <div ref={emojiRef} className="relative">
               <button
-                className="mr-2"
+                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
               >
-                <Smile />
+                <Smile className="h-5 w-5" />
               </button>
               {showEmojiPicker && (
-                <div className="absolute  z-10">
+                <div className="absolute left-0 top-full z-10 mt-1">
                   <Picker
                     data={data}
                     onEmojiSelect={(emoji: any) => {
@@ -125,105 +132,98 @@ function Comments({ videoId }: { videoId: string }) {
               )}
             </div>
 
-            <div className="space-x-3">
+            <div className="flex gap-2">
               <Button
-                onClick={() => setNewComment('')}
-                variant={'secondary'}
-                className="px-4 py-2  text-white rounded"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setNewComment('');
+                  setIsFocused(false);
+                }}
               >
                 Cancel
               </Button>
               <Button
+                size="sm"
                 onClick={handleCommentPost}
-                variant="default"
-                className="px-4 py-2  text-black rounded"
+                disabled={!newComment.trim()}
               >
-                Post
+                Comment
               </Button>
             </div>
           </div>
-        </div>
+        )}
+      </div>
+
+      {/* Comments list */}
+      <div className="mt-6 space-y-5">
         {comments.length === 0 ? (
-          <p>No comments yet. Be the first to comment!</p>
+          <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <MessageCircle className="h-8 w-8 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">
+              No comments yet. Be the first to comment!
+            </p>
+          </div>
         ) : (
           comments.map((comment: IComment) => (
-            <div
-              key={comment._id}
-              className="mb-4 border-b pb-2 flex justify-between"
-            >
-              <div className="flex">
-                <div className="">
-                  <img
-                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                      comment.username,
-                    )}&background=random&size=20`}
-                    alt={comment.username}
-                    className="w-10 h-10 rounded-full inline-block mr-2"
-                  />
+            <div key={comment._id} className="flex gap-3">
+              {/* Avatar */}
+              <img
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  comment.username,
+                )}&background=random&size=32`}
+                alt={comment.username}
+                className="h-8 w-8 shrink-0 rounded-full"
+              />
+
+              {/* Content */}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] font-medium">@{comment.username}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {comment.createdAt === comment.updatedAt
+                      ? timeElapsed(new Date(comment.createdAt).valueOf())
+                      : `Edited ${timeElapsed(new Date(comment.updatedAt).valueOf())}`}
+                  </span>
                 </div>
 
-                <div className="">
-                  <div className="flex items-center space-x-4">
-                    <div className="">
-                      <div className="flex space-x-2">
-                        <p className="font-semibold text-sm">
-                          @{comment.username}
-                        </p>
-                        <p className="text-xs text-gray-300">
-                          {comment.createdAt === comment.updatedAt
-                            ? timeElapsed(new Date(comment.createdAt).valueOf())
-                            : `Edited: ${timeElapsed(
-                                new Date(comment.updatedAt).valueOf(),
-                              )}`}
-                        </p>
-                      </div>
-                      <p className="font-serif">{comment.content}</p>
-                    </div>
-                  </div>
+                <p className="mt-0.5 text-sm leading-relaxed">{comment.content}</p>
 
-                  <div className="flex space-x-2">
-                    <div className="text-sm flex items-center space-x-1">
-                      <ThumbsUp className="text-white w-4 h-4 pb-0.5" />
-                      <p className="min-w-[20px]">{comment.likes}</p>
-                    </div>
+                {/* Actions */}
+                <div className="mt-1.5 flex items-center gap-3">
+                  <button className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
+                    <ThumbsUp className="h-3.5 w-3.5" />
+                    {comment.likes > 0 && <span>{comment.likes}</span>}
+                  </button>
 
-                    <div className="text-sm flex items-center space-x-1">
-                      <ThumbsDown className="text-white w-4 h-4 pb-0.5" />
-                      <p className="min-w-[20px]">{comment.dislikes}</p>
-                    </div>
+                  <button className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
+                    <ThumbsDown className="h-3.5 w-3.5" />
+                    {comment.dislikes > 0 && <span>{comment.dislikes}</span>}
+                  </button>
 
-                    {!comment.star && (
-                      <div className="text-sm flex items-center">
-                        <Heart
-                          className="w-5 h-5 pb-0.5 text-red-500"
-                          fill="red"
-                        />
-                      </div>
-                    )}
+                  {!comment.star && (
+                    <Heart className="h-3.5 w-3.5 text-red-500" fill="currentColor" />
+                  )}
 
-                    <Button variant="outline" className="px-2 py-1">
-                      Reply
-                    </Button>
-                  </div>
+                  <button className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+                    Reply
+                  </button>
                 </div>
               </div>
 
-              <div className="">
-                <div className="">
-                  <Menubar>
-                    <MenubarMenu>
-                      <MenubarTrigger>
-                        <EllipsisVertical className="w-4 h-4 text-gray-200" />
-                      </MenubarTrigger>
-                      <MenubarContent>
-                        <MenubarItem>Edit</MenubarItem>
-                        <MenubarSeparator />
-                        <MenubarItem>Delete</MenubarItem>
-                      </MenubarContent>
-                    </MenubarMenu>
-                  </Menubar>
-                </div>
-              </div>
+              {/* Menu */}
+              <Menubar className="h-auto border-none bg-transparent p-0 shadow-none">
+                <MenubarMenu>
+                  <MenubarTrigger className="h-8 w-8 cursor-pointer rounded-full p-0 data-[state=open]:bg-accent">
+                    <EllipsisVertical className="mx-auto h-4 w-4 text-muted-foreground" />
+                  </MenubarTrigger>
+                  <MenubarContent align="end">
+                    <MenubarItem>Edit</MenubarItem>
+                    <MenubarSeparator />
+                    <MenubarItem className="text-destructive">Delete</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+              </Menubar>
             </div>
           ))
         )}

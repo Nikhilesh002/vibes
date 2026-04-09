@@ -10,6 +10,21 @@ import Comments from './_components/Comments';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
+function VideoSkeleton() {
+  return (
+    <div className="animate-pulse py-6">
+      <div className="aspect-video w-full rounded-xl bg-muted" />
+      <div className="mt-4 space-y-3">
+        <div className="h-6 w-2/3 rounded bg-muted" />
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-muted" />
+          <div className="h-4 w-32 rounded bg-muted" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Video() {
   const { videoId } = useParams();
   const queryClient = useQueryClient();
@@ -137,15 +152,24 @@ function Video() {
   });
 
   if (!videoId) {
-    return <div>No videoId provided</div>;
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center text-muted-foreground">
+        No video ID provided
+      </div>
+    );
   }
 
   if (isPending) {
-    return <span>Loading...</span>;
+    return <VideoSkeleton />;
   }
 
   if (isError) {
-    return <span>Error: {error.message}</span>;
+    return (
+      <div className="flex min-h-[50vh] flex-col items-center justify-center gap-2">
+        <p className="text-lg font-medium text-destructive">Failed to load video</p>
+        <p className="text-sm text-muted-foreground">{error.message}</p>
+      </div>
+    );
   }
 
   const videoJsOptions = {
@@ -166,32 +190,41 @@ function Video() {
   };
 
   return (
-    <div>
+    <div className="py-6">
       {videoData?.video ? (
-        <div className="p-0.5">
-          <div className="px-56 border-2 border-gray-700 rounded-lg shadow-2xl ">
-            <VideoJS
-              options={{
-                ...videoJsOptions,
-                sources: videoData.video.transcodedVideoUrl,
-                poster: videoData.video.thumbnailUrl,
-              }}
-              onReady={handlePlayerReady}
-            />
+        <div className="flex flex-col gap-6 lg:flex-row">
+          {/* Main content */}
+          <div className="flex-1 min-w-0">
+            {/* Player */}
+            <div className="overflow-hidden rounded-xl bg-black">
+              <VideoJS
+                options={{
+                  ...videoJsOptions,
+                  sources: videoData.video.transcodedVideoUrl,
+                  poster: videoData.video.thumbnailUrl,
+                }}
+                onReady={handlePlayerReady}
+                sasToken={videoData.streamingSasToken}
+              />
+            </div>
+
+            {/* Video info */}
+            <VideoInfo videoData={videoData} mutation={mutation} />
+
+            {/* Comments */}
+            <Comments videoId={videoData.video._id} />
           </div>
 
-          <div className="flex gap-8 px-5">
-            <div className="w-2/3">
-              <VideoInfo videoData={videoData} mutation={mutation} />
-              <Comments videoId={videoData.video._id} />
+          {/* Sidebar — recommendations */}
+          <aside className="w-full shrink-0 lg:w-80 xl:w-96">
+            <div className="rounded-xl border border-border bg-card p-6">
+              <h3 className="text-sm font-medium text-muted-foreground">Recommendations</h3>
+              <p className="mt-2 text-sm text-muted-foreground/60">Coming soon...</p>
             </div>
-            <div className="w-1/3 p-2 mt-4 border rounded-lg">
-              Recommendations comming soon...
-            </div>
-          </div>
+          </aside>
         </div>
       ) : (
-        <div>Loading...</div>
+        <VideoSkeleton />
       )}
     </div>
   );
