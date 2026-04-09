@@ -7,21 +7,12 @@ import { Response, Request } from "express";
 export const userSignUp = async (req: Request, res: Response): Promise<any> => {
   try {
     const { username, email, password } = req.body;
-    console.log("user signup");
-    if (!username || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        msg: "All fields are required",
-      });
-    }
 
     const hashedPassword = await createHash(password);
     const user = await UserModel.create({
       username,
       email,
       password: hashedPassword,
-      plans: [],
-      questionares: [],
     });
 
     // make token and send
@@ -40,7 +31,7 @@ export const userSignUp = async (req: Request, res: Response): Promise<any> => {
     console.error("Error creating user", error);
     res.status(400).json({
       success: false,
-      msg: error,
+      msg: "Failed to create user",
     });
   }
 };
@@ -48,12 +39,6 @@ export const userSignUp = async (req: Request, res: Response): Promise<any> => {
 export const userSignIn = async (req: Request, res: Response): Promise<any> => {
   try {
     const { identifier, password } = req.body;
-    if (!identifier || !password) {
-      return res.status(400).json({
-        success: false,
-        msg: "All fields are required",
-      });
-    }
 
     const user = (await UserModel.findOne({
       $or: [{ username: identifier }, { email: identifier }],
@@ -76,7 +61,7 @@ export const userSignIn = async (req: Request, res: Response): Promise<any> => {
     }
 
     // make token and send
-    res.cookie("auth_token", makeToken(user.username, user.id), {
+    res.cookie("auth_token", makeToken(user.username, user._id), {
       httpOnly: true,
       sameSite: "none",
       secure: true,
@@ -95,7 +80,7 @@ export const userSignIn = async (req: Request, res: Response): Promise<any> => {
     console.error("Error signing in user", error);
     res.status(400).json({
       success: false,
-      msg: error,
+      msg: "Failed to sign in",
     });
   }
 };

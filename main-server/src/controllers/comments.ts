@@ -1,16 +1,23 @@
-import { Request, Response } from 'express';
-import { CommentModel } from '../models/comments';
-import { UserModel } from '../models/user';
+import { Request, Response } from "express";
+
+import { CommentModel } from "../models/comments";
+import { UserModel } from "../models/user";
 
 export const getComments = async (
   req: Request,
   res: Response,
 ): Promise<any> => {
   try {
-    const { videoId } = req.params;
+    const videoId = req.params.videoId as string;
 
-    const comments = await CommentModel.find({ videoId })
-      .populate('userId', 'username avatarUrl')
+    const comments = await CommentModel.find({
+      videoId,
+    } as any)
+      .populate({
+        path: "userId",
+        select: "username avatarUrl",
+      })
+
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -20,7 +27,7 @@ export const getComments = async (
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'Error fetching comments',
+      message: "Error fetching comments",
     });
   }
 };
@@ -32,20 +39,13 @@ export const postComment = async (
   try {
     const { content, parentCommentId } = req.body;
     const userId = req.userId;
-    const { videoId } = req.params;
-
-    if (!content || content.trim() === '' || !videoId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid request data',
-      });
-    }
+    const videoId = req.params.videoId as string;
 
     const user = await UserModel.findById(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: "User not found",
       });
     }
 
@@ -53,18 +53,18 @@ export const postComment = async (
       videoId,
       userId,
       content,
-      parentCommentId: parentCommentId || null,
+      parentCommentId: parentCommentId ?? null,
       username: user.username,
-    });
+    } as any);
 
     return res.status(201).json({
       success: true,
-      message: 'Comment posted successfully',
+      message: "Comment posted successfully",
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'Error posting comment',
+      message: "Error posting comment",
     });
   }
 };
@@ -74,29 +74,29 @@ export const deleteComment = async (
   res: Response,
 ): Promise<any> => {
   try {
-    const { commentId } = req.params;
+    const commentId = req.params.commentId as string;
     const userId = req.userId;
 
     const comment = await CommentModel.findOneAndDelete({
       _id: commentId,
       userId,
-    });
+    } as any);
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        message: 'Comment not found or unauthorized',
+        message: "Comment not found or unauthorized",
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Comment deleted successfully',
+      message: "Comment deleted successfully",
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'Error deleting comment',
+      message: "Error deleting comment",
     });
   }
 };

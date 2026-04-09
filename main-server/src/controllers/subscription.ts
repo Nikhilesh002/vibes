@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+
 import { SubscriptionModel } from '../models/subscription';
 
 export const getSubscriptions = async (
@@ -6,7 +7,9 @@ export const getSubscriptions = async (
   res: Response,
 ): Promise<any> => {
   try {
-    const subscriptions = await SubscriptionModel.find({ userId: req.userId });
+    const subscriptions = await SubscriptionModel.find({
+      userId: req.userId,
+    } as any);
     return res.status(200).json({
       success: true,
       subscriptions,
@@ -21,8 +24,10 @@ export const getUserSubscriptions = async (
   res: Response,
 ): Promise<any> => {
   try {
-    const { userId } = req.params;
-    const subscriptions = await SubscriptionModel.find({ userId });
+    const userId = req.params.userId as string;
+    const subscriptions = await SubscriptionModel.find({
+      userId,
+    } as any);
     return res.status(200).json({
       success: true,
       subscriptions,
@@ -37,8 +42,10 @@ export const getCreatorSubscribersCount = async (
   res: Response,
 ): Promise<any> => {
   try {
-    const { creatorId } = req.params;
-    const count = await SubscriptionModel.countDocuments({ creatorId });
+    const creatorId = req.params.creatorId as string;
+    const count = await SubscriptionModel.countDocuments({
+      creatorId,
+    } as any);
     return res.status(200).json({
       success: true,
       count,
@@ -56,14 +63,10 @@ export const subscribeToCreator = async (
     const { creatorId, isNotificationsEnabled } = req.body;
     const userId = req.userId;
 
-    if (!creatorId) {
-      return res.status(400).json({ message: 'creatorId is required' });
-    }
-
     const existingSubscription = await SubscriptionModel.findOne({
       creatorId,
       userId,
-    });
+    } as any);
 
     if (existingSubscription) {
       return res
@@ -75,7 +78,7 @@ export const subscribeToCreator = async (
       creatorId,
       userId,
       isNotificationsEnabled: isNotificationsEnabled || false,
-    });
+    } as any);
 
     await newSubscription.save();
 
@@ -96,14 +99,10 @@ export const unsubscribeFromCreator = async (
     const { creatorId } = req.body;
     const userId = req.userId;
 
-    if (!creatorId) {
-      return res.status(400).json({ message: 'creatorId is required' });
-    }
-
     const existingSubscription = await SubscriptionModel.findOne({
       creatorId,
       userId,
-    });
+    } as any);
 
     if (!existingSubscription) {
       return res
@@ -111,7 +110,10 @@ export const unsubscribeFromCreator = async (
         .json({ message: 'Not subscribed to this creator' });
     }
 
-    await SubscriptionModel.deleteOne({ creatorId, userId });
+    await SubscriptionModel.deleteOne({
+      creatorId,
+      userId,
+    } as any);
 
     return res.status(200).json({
       success: true,
