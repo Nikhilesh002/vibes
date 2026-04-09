@@ -76,7 +76,7 @@ export async function createDockerContainer(jobData: IProcessJob) {
           },
           {
             name: 'MONGODB_URI',
-            value: process.env.MONGODB_URI,
+            secureValue: process.env.MONGODB_URI ?? '',
           },
           {
             name: 'VIDEO_ID',
@@ -92,7 +92,7 @@ export async function createDockerContainer(jobData: IProcessJob) {
           },
           {
             name: 'AZURE_CLIENT_SECRET',
-            value: process.env.AZURE_CLIENT_SECRET ?? '',
+            secureValue: process.env.AZURE_CLIENT_SECRET ?? '',
           },
           {
             name: 'CONTAINERINSTANCE_SUBSCRIPTION_ID',
@@ -119,7 +119,7 @@ export async function createDockerContainer(jobData: IProcessJob) {
       {
         server: 'docker.io',
         username: 'nikhilesh002',
-        password: process.env.DOCKER_PAT ?? 'DOCKER_PAT',
+        password: process.env.DOCKER_PAT ?? '',
       },
     ],
     ipAddress: { type: 'Public', ports: [{ port: 8000, protocol: 'TCP' }] },
