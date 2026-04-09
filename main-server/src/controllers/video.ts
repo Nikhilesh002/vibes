@@ -2,8 +2,10 @@ import { Request, Response } from 'express';
 
 import {
   getPresignedUrl,
+  getStreamingSasToken,
   makePresignedUrl,
 } from '../utils/azureBlob/makePresignedUrl';
+import { envs } from '../configs';
 import { VideoModel } from '../models/video';
 import { LikeModel } from '../models/like';
 import { db } from '../configs/db';
@@ -105,9 +107,13 @@ export const getVideoById = async (
     if (video.thumbnailUrl.includes('.blob.core.windows.net/'))
       video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl, 'r');
 
-    // TODO: no auth
-    // if (video.transcodedVideoUrl.includes('.blob.core.windows.net/'))
-    //   video.transcodedVideoUrl = getPresignedUrl(video.transcodedVideoUrl, 'r');
+    // Generate a 4-hour read-only SAS token for HLS streaming.
+    // Returned separately because HLS relative URL resolution strips query
+    // params — the client must append this token to every sub-request.
+    let streamingSasToken = '';
+    if (video.transcodedVideoUrl.includes('.blob.core.windows.net/')) {
+      streamingSasToken = getStreamingSasToken(envs.destinationContainer);
+    }
 
     const populatedUser: any = video.userId;
 
@@ -120,6 +126,7 @@ export const getVideoById = async (
         creatorAvatar: populatedUser.avatarUrl,
       },
       likeStatus: like ? like.likeStatus : 'NONE',
+      streamingSasToken,
     });
   } catch (error) {
     console.error('Error getting video by id', error);

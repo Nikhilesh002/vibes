@@ -30,16 +30,29 @@ export const makePresignedUrl = (containerName: string, blobName: string, permis
   };
 };
 
-/*
-permi   :  "c"
-container: "images"
-https://vidmuxtemp.blob.core.windows.net/tempbucket/rzp.csv
-*/
+/**
+ * Generate a read-only SAS token for streaming HLS video.
+ * Returns just the query string (without '?') so the client can append it
+ * to every HLS sub-request (playlists + segments).
+ *
+ * Expiry: 4 hours — long enough for a movie session, short enough that
+ * shared tokens die quickly.
+ */
+export const getStreamingSasToken = (containerName: string): string => {
+  const { sasKey } = generateSasToken(
+    envs.azureBlobConnStr,
+    containerName,
+    'r',
+    4 * 60 * 60 * 1000, // 4 hours
+  );
+  return sasKey;
+};
 
 function generateSasToken(
   connectionString: string,
   containerName: string,
   permissions: string,
+  expiryMs: number = 20 * 60 * 1000,
 ) {
   const { accountKey, accountName, url } =
     extractConnectionStringParts(connectionString);
@@ -49,7 +62,7 @@ function generateSasToken(
     accountKey,
   );
 
-  const expiryDate = Date.now() + 20 * 60 * 1000;
+  const expiryDate = Date.now() + expiryMs;
 
   const sasKey = generateBlobSASQueryParameters(
     {
