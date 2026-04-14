@@ -1,4 +1,4 @@
-import { getBlobSASClient } from '@/utils/azureBlob/client';
+import { uploadBlobWithSAS } from '@/utils/azureBlob/client';
 import { axiosWithToken } from './axiosWithToken';
 import type { IUploadVideoForm } from './types';
 import { buildBlobName } from '@/utils/azureBlob/buildBlobName';
@@ -42,32 +42,13 @@ export const uploadData = async (
   console.log({ video: `${videoUrl}?${videoSasKey}` });
   console.log({ thumbnail: `${thumbnailUrl}?${thumbnailSasKey}` });
 
-  // upload video, thmbnail to azure
+  // upload video, thumbnail to azure
   await Promise.all([
-    uploadToAzure(videoUrl, videoSasKey, video, { videoId }),
-    uploadToAzure(thumbnailUrl, thumbnailSasKey, thumbnail, { videoId }),
+    uploadBlobWithSAS(`${videoUrl}?${videoSasKey}`, video, { videoId }),
+    uploadBlobWithSAS(`${thumbnailUrl}?${thumbnailSasKey}`, thumbnail, { videoId }),
   ]);
 
   toast.success('Video uploaded successfully!');
-};
-
-const uploadToAzure = async (
-  url: string,
-  sasKey: string,
-  blob: File,
-  metadata: any,
-) => {
-  const sasClient = getBlobSASClient(`${url}?${sasKey}`);
-  const resp2 = await sasClient.uploadData(blob, {
-    metadata,
-  });
-
-  console.log({ resp2 });
-
-  if (resp2.errorCode) {
-    toast.error('Video upload failed.');
-    throw new Error('blob upload failed');
-  }
 };
 
 const videoChecks = (videos: File | null) => {

@@ -1,18 +1,17 @@
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { axiosWithToken } from '@/lib/axiosWithToken';
-import { timeElapsed } from '@/lib/formatFuncs';
-import type { IComment } from '@/lib/types';
-import axios from 'axios';
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { axiosWithToken } from "@/lib/axiosWithToken"
+import { timeElapsed } from "@/lib/formatFuncs"
+import type { IComment } from "@/lib/types"
+import axios from "axios"
 import {
   EllipsisVertical,
   Heart,
   MessageCircle,
-  Smile,
   ThumbsDown,
   ThumbsUp,
-} from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+} from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   Menubar,
   MenubarContent,
@@ -20,89 +19,96 @@ import {
   MenubarMenu,
   MenubarSeparator,
   MenubarTrigger,
-} from '@/components/ui/menubar';
+} from "@/components/ui/menubar"
+import { emojis } from "@/lib/emojis"
 
 function Comments({ videoId }: { videoId: string }) {
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState('');
-  const [isFocused, setIsFocused] = useState(false);
+  const [comments, setComments] = useState([])
+  const [newComment, setNewComment] = useState("")
+  const [isFocused, setIsFocused] = useState(false)
+
+  const commentInputRef = useRef<HTMLTextAreaElement>(null)
 
   const fetchComments = useCallback(async () => {
     const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/comments/${videoId}`,
-    );
-    const data = response.data;
+      `${import.meta.env.VITE_API_URL}/comments/${videoId}`
+    )
+    const data = response.data
     if (data.success) {
-      setComments(data.comments);
+      setComments(data.comments)
     }
-  }, [videoId]);
+  }, [videoId])
 
   const handleCommentPost = useCallback(async () => {
-    if (newComment.trim() === '') return;
+    if (newComment.trim() === "") return
 
     try {
       const res = await axiosWithToken.post(
         `${import.meta.env.VITE_API_URL}/comments/${videoId}`,
         {
           content: newComment,
-        },
-      );
+        }
+      )
 
-      const data = res.data;
+      const data = res.data
       if (data.success) {
-        setNewComment('');
-        setIsFocused(false);
-        fetchComments();
+        setNewComment("")
+        setIsFocused(false)
+        fetchComments()
       }
     } catch (error) {
-      console.error('Error posting comment:', error);
+      console.error("Error posting comment:", error)
     }
-  }, [videoId, newComment, fetchComments]);
+  }, [videoId, newComment, fetchComments])
 
   // TODO: use react-query
   useEffect(() => {
-    fetchComments();
-  }, [videoId, fetchComments]);
+    fetchComments()
+  }, [videoId, fetchComments])
 
   return (
     <div className="mt-8">
       <h2 className="text-base font-semibold">
-        {comments.length} Comment{comments.length !== 1 ? 's' : ''}
+        {comments.length} Comment{comments.length !== 1 ? "s" : ""}
       </h2>
 
       {/* Comment input */}
       <div className="mt-4">
         <Textarea
+          ref={commentInputRef}
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           onFocus={() => setIsFocused(true)}
-          className="min-h-[44px] resize-none rounded-lg border-border bg-transparent text-sm placeholder:text-muted-foreground"
+          className="min-h-11 resize-none rounded-lg border-border bg-transparent text-sm placeholder:text-muted-foreground"
           placeholder="Add a comment..."
           rows={isFocused ? 3 : 1}
         />
 
         {isFocused && (
-          <div className="mt-2 flex items-center justify-between">
+          <div className="mt-1.5 flex items-center justify-between ps-1">
             {/* Emoji hint — use OS native picker */}
-            <button
-              className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              title="Emoji: Win+. or Cmd+Ctrl+Space"
-              onClick={() => {
-                // Focus the textarea so OS emoji picker targets it
-                const textarea = document.querySelector('textarea');
-                textarea?.focus();
-              }}
-            >
-              <Smile className="h-5 w-5" />
-            </button>
+            <div className="flex items-center gap-3 text-xl">
+              {emojis.map((emoji) => (
+                <span
+                  key={emoji}
+                  className="cursor-pointer transition-transform hover:scale-110"
+                  onClick={() => {
+                    setNewComment(newComment + emoji)
+                    commentInputRef.current?.select()
+                  }}
+                >
+                  {emoji}
+                </span>
+              ))}
+            </div>
 
             <div className="flex gap-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setNewComment('');
-                  setIsFocused(false);
+                  setNewComment("")
+                  setIsFocused(false)
                 }}
               >
                 Cancel
@@ -134,7 +140,7 @@ function Comments({ videoId }: { videoId: string }) {
               {/* Avatar */}
               <img
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                  comment.username,
+                  comment.username
                 )}&background=random&size=32`}
                 alt={comment.username}
                 className="h-8 w-8 shrink-0 rounded-full"
@@ -143,7 +149,9 @@ function Comments({ videoId }: { videoId: string }) {
               {/* Content */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] font-medium">@{comment.username}</span>
+                  <span className="text-[13px] font-medium">
+                    @{comment.username}
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     {comment.createdAt === comment.updatedAt
                       ? timeElapsed(new Date(comment.createdAt).valueOf())
@@ -151,7 +159,9 @@ function Comments({ videoId }: { videoId: string }) {
                   </span>
                 </div>
 
-                <p className="mt-0.5 text-sm leading-relaxed">{comment.content}</p>
+                <p className="mt-0.5 text-sm leading-relaxed">
+                  {comment.content}
+                </p>
 
                 {/* Actions */}
                 <div className="mt-1.5 flex items-center gap-3">
@@ -166,7 +176,10 @@ function Comments({ videoId }: { videoId: string }) {
                   </button>
 
                   {!comment.star && (
-                    <Heart className="h-3.5 w-3.5 text-red-500" fill="currentColor" />
+                    <Heart
+                      className="h-3.5 w-3.5 text-red-500"
+                      fill="currentColor"
+                    />
                   )}
 
                   <button className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
@@ -184,7 +197,9 @@ function Comments({ videoId }: { videoId: string }) {
                   <MenubarContent align="end">
                     <MenubarItem>Edit</MenubarItem>
                     <MenubarSeparator />
-                    <MenubarItem className="text-destructive">Delete</MenubarItem>
+                    <MenubarItem className="text-destructive">
+                      Delete
+                    </MenubarItem>
                   </MenubarContent>
                 </MenubarMenu>
               </Menubar>
@@ -193,7 +208,7 @@ function Comments({ videoId }: { videoId: string }) {
         )}
       </div>
     </div>
-  );
+  )
 }
 
-export default Comments;
+export default Comments
