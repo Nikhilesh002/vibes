@@ -19,6 +19,7 @@ export const getPresignedUrl = (url: string, permissions: string) => {
 
 export const makePresignedUrl = (containerName: string, blobName: string, permissions: string) => {
   const { sasKey, url, accountName } = generateSasToken(
+    blobName,
     envs.azureBlobConnStr,
     containerName,
     permissions,
@@ -38,8 +39,9 @@ export const makePresignedUrl = (containerName: string, blobName: string, permis
  * Expiry: 4 hours — long enough for a movie session, short enough that
  * shared tokens die quickly.
  */
-export const getStreamingSasToken = (containerName: string): string => {
+export const getStreamingSasToken = (containerName: string, blobName: string): string => {
   const { sasKey } = generateSasToken(
+    blobName,
     envs.azureBlobConnStr,
     containerName,
     'r',
@@ -49,6 +51,7 @@ export const getStreamingSasToken = (containerName: string): string => {
 };
 
 function generateSasToken(
+  blobName: string,
   connectionString: string,
   containerName: string,
   permissions: string,
@@ -66,6 +69,7 @@ function generateSasToken(
 
   const sasKey = generateBlobSASQueryParameters(
     {
+      blobName,
       containerName,
       permissions: ContainerSASPermissions.parse(permissions),
       expiresOn: new Date(expiryDate),

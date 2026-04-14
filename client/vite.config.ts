@@ -15,8 +15,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // video.js is ~250KB min — isolate so it caches independently
-          "vendor-videojs": ["video.js"],
+          "vendor-hls": ["hls.js"],
         },
       },
     },

@@ -1,4 +1,4 @@
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 import type { IVideoData } from "@/lib/types"
 import { useParams } from "react-router-dom"
 import { axiosWithToken } from "@/lib/axiosWithToken"
@@ -7,7 +7,6 @@ import Comments from "./_components/Comments"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import toast from "react-hot-toast"
 import HlsPlayer from "@/components/custom/video/HlsPlayer"
-// import VideoPlayer from "@/components/custom/video/VideoPlayer"
 
 function VideoSkeleton() {
   return (
@@ -27,6 +26,7 @@ function VideoSkeleton() {
 function Video() {
   const { videoId } = useParams()
   const queryClient = useQueryClient()
+  const [isTheater, setIsTheater] = useState(false)
 
   const {
     isError,
@@ -175,7 +175,9 @@ function Video() {
   return (
     <div className="py-6">
       {videoData?.video ? (
-        <div className="flex flex-col gap-6 lg:flex-row">
+        <div
+          className={`flex flex-col gap-6 ${isTheater ? "" : "lg:flex-row"}`}
+        >
           {/* Main content */}
           <div className="min-w-0 flex-1">
             {/* Player */}
@@ -183,8 +185,14 @@ function Video() {
               <HlsPlayer
                 videoData={{
                   thumbnailUrl: videoData.video.thumbnailUrl,
-                  videoUrl: videoData.video.transcodedVideoUrl,
+                  videoUrl: videoData.video.transcodedVideoUrl.includes(
+                    "/master.m3u8"
+                  )
+                    ? videoData.video.transcodedVideoUrl
+                    : videoData.video.transcodedVideoUrl + "/master.m3u8",
+                  videoSasToken: videoData.video.transcodedVideoSasToken,
                 }}
+                onTheaterToggle={setIsTheater}
               />
             </div>
 

@@ -11,6 +11,7 @@ export interface IVideo extends IUploadVideoForm {
   status: 'IN_QUEUE' | 'DONE' | 'PENDING';
   logs: string;
   transcodedVideoUrl: string;
+  transcodedVideoSasToken: string;
   thumbnailUrl: string;
   completedAt: number;
 
@@ -28,7 +29,6 @@ export interface IVideo extends IUploadVideoForm {
 export interface IVideoData {
   video: IVideo;
   likeStatus: 'LIKED' | 'DISLIKED' | 'NONE';
-  streamingSasToken?: string;
 }
 
 export interface IComment {

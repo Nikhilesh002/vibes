@@ -127,7 +127,7 @@ func main() {
 	inpFileNameWithoutExt := getFilenameWithoutExt(blobName)
 
 	// create final url
-	transcodedVideoUrl := "https://" + myEnvs.azStorageAccPerma + ".blob.core.windows.net/" + myEnvs.destContainerName + "/" + inpFileNameWithoutExt + "/master.m3u8"
+	transcodedVideoUrl := "https://" + myEnvs.azStorageAccPerma + ".blob.core.windows.net/" + myEnvs.destContainerName + "/" + inpFileNameWithoutExt
 
 	// create transcoded dir
 	err = os.MkdirAll(inpFileNameWithoutExt+"/", os.ModePerm)

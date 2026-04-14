@@ -112,7 +112,7 @@ export const getVideoById = async (
     // params — the client must append this token to every sub-request.
     let streamingSasToken = '';
     if (video.transcodedVideoUrl.includes('.blob.core.windows.net/')) {
-      streamingSasToken = getStreamingSasToken(envs.destinationContainer);
+      streamingSasToken = getStreamingSasToken(envs.destinationContainer, video.blobName);
     }
 
     const populatedUser: any = video.userId;
@@ -121,12 +121,12 @@ export const getVideoById = async (
       success: true,
       video: {
         ...video.toObject(),
+        streamingSasToken,
         userId: populatedUser._id,
         creatorName: populatedUser.username,
         creatorAvatar: populatedUser.avatarUrl,
       },
       likeStatus: like ? like.likeStatus : 'NONE',
-      streamingSasToken,
     });
   } catch (error) {
     console.error('Error getting video by id', error);
