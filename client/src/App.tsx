@@ -40,7 +40,7 @@ function App() {
           />
           <BrowserRouter>
             <NavBar />
-            <main className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
+            <main className="mx-auto w-full max-w-350 px-4 sm:px-6 lg:px-8">
               <Routes>
                 <Route path="/home" element={<Home />} />
 
