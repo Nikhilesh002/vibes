@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { AppDispatch, RootState } from '@/redux/store';
+import type { AppDispatch, RootState } from '@/redux/store';
 import { logout } from '@/redux/slices/userSlice';
 import toast from 'react-hot-toast';
 import { axiosWithToken } from '@/lib/axiosWithToken';

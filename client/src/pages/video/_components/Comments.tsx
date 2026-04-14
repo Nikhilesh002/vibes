@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { axiosWithToken } from '@/lib/axiosWithToken';
 import { timeElapsed } from '@/lib/formatFuncs';
-import { IComment } from '@/lib/types';
+import type { IComment } from '@/lib/types';
 import axios from 'axios';
 import {
   EllipsisVertical,
@@ -12,7 +12,7 @@ import {
   ThumbsDown,
   ThumbsUp,
 } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Menubar,
   MenubarContent,
@@ -21,16 +21,11 @@ import {
   MenubarSeparator,
   MenubarTrigger,
 } from '@/components/ui/menubar';
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
 
 function Comments({ videoId }: { videoId: string }) {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-
-  const emojiRef = useRef<HTMLDivElement | null>(null);
 
   const fetchComments = useCallback(async () => {
     const response = await axios.get(
@@ -69,30 +64,6 @@ function Comments({ videoId }: { videoId: string }) {
     fetchComments();
   }, [videoId, fetchComments]);
 
-  // close picker when clicking outside or pressing Esc
-  useEffect(() => {
-    function handleOutsideClick(e: MouseEvent) {
-      if (!showEmojiPicker) return;
-      const el = emojiRef.current;
-      if (el && !el.contains(e.target as Node)) {
-        setShowEmojiPicker(false);
-      }
-    }
-
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape' && showEmojiPicker) {
-        setShowEmojiPicker(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleOutsideClick);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [showEmojiPicker]);
-
   return (
     <div className="mt-8">
       <h2 className="text-base font-semibold">
@@ -112,25 +83,18 @@ function Comments({ videoId }: { videoId: string }) {
 
         {isFocused && (
           <div className="mt-2 flex items-center justify-between">
-            <div ref={emojiRef} className="relative">
-              <button
-                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              >
-                <Smile className="h-5 w-5" />
-              </button>
-              {showEmojiPicker && (
-                <div className="absolute left-0 top-full z-10 mt-1">
-                  <Picker
-                    data={data}
-                    onEmojiSelect={(emoji: any) => {
-                      setNewComment((prev) => prev + emoji.native);
-                    }}
-                    theme="dark"
-                  />
-                </div>
-              )}
-            </div>
+            {/* Emoji hint — use OS native picker */}
+            <button
+              className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              title="Emoji: Win+. or Cmd+Ctrl+Space"
+              onClick={() => {
+                // Focus the textarea so OS emoji picker targets it
+                const textarea = document.querySelector('textarea');
+                textarea?.focus();
+              }}
+            >
+              <Smile className="h-5 w-5" />
+            </button>
 
             <div className="flex gap-2">
               <Button

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { formatViews } from '@/lib/formatFuncs';
-import { IVideoData } from '@/lib/types';
-import { UseMutationResult } from '@tanstack/react-query';
+import type { IVideoData } from '@/lib/types';
+import type { UseMutationResult } from '@tanstack/react-query';
 import { Download, Share2, ThumbsDown, ThumbsUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 

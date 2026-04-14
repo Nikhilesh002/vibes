@@ -2,10 +2,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { IUploadVideoForm } from '@/lib/types';
+import type { IUploadVideoForm } from '@/lib/types';
 import { uploadData } from '@/lib/videoUpload';
 import { Film, ImagePlus, Loader2, Upload } from 'lucide-react';
-import { ChangeEvent, FormEvent, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useState } from 'react';
 import toast from 'react-hot-toast';
 
 function VideoUpload() {

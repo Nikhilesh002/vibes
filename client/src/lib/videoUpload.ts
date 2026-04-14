@@ -1,6 +1,6 @@
 import { getBlobSASClient } from '@/utils/azureBlob/client';
 import { axiosWithToken } from './axiosWithToken';
-import { IUploadVideoForm } from './types';
+import type { IUploadVideoForm } from './types';
 import { buildBlobName } from '@/utils/azureBlob/buildBlobName';
 import toast from 'react-hot-toast';
 import { supportedFormats } from './supportedFormats';

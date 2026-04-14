@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react';
 import VideoJS from '@/components/custom/VideoJS';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
-import { IVideoData } from '@/lib/types';
+import type { IVideoData } from '@/lib/types';
 import { useParams } from 'react-router-dom';
 import { axiosWithToken } from '@/lib/axiosWithToken';
 import VideoInfo from './_components/VideoInfo';

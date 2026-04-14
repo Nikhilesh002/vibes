@@ -1,9 +1,9 @@
 import { axiosWithToken } from '@/lib/axiosWithToken';
 import { formatViews, timeElapsed } from '@/lib/formatFuncs';
-import { IVideo } from '@/lib/types';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { PlayCircle } from 'lucide-react';
+import type { IVideo } from '@/lib/types';
 
 function VideoCardSkeleton() {
   return (
