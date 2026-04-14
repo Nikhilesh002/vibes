@@ -2,22 +2,30 @@ import {
   StorageSharedKeyCredential,
   ContainerSASPermissions,
   generateBlobSASQueryParameters,
-} from '@azure/storage-blob';
-import { extractConnectionStringParts } from './utils';
-import { envs } from '../../configs/index';
+} from "@azure/storage-blob";
+import { extractConnectionStringParts } from "./utils";
+import { envs } from "../../configs/index";
 
 export const getPresignedUrl = (url: string, permissions: string) => {
-  const a = url.split('.blob.core.windows.net/');
-  const containerAndBlob = a[1].split('/');
+  const a = url.split(".blob.core.windows.net/");
+  const containerAndBlob = a[1].split("/");
   const containerName = containerAndBlob[0];
-  const blobName = containerAndBlob.slice(1).join('/');
+  const blobName = containerAndBlob.slice(1).join("/");
 
-  const { url: sameUrl, sasKey } = makePresignedUrl(containerName, blobName, permissions);
+  const { url: sameUrl, sasKey } = makePresignedUrl(
+    containerName,
+    blobName,
+    permissions,
+  );
 
   return `${sameUrl}?${sasKey}`;
 };
 
-export const makePresignedUrl = (containerName: string, blobName: string, permissions: string) => {
+export const makePresignedUrl = (
+  containerName: string,
+  blobName: string,
+  permissions: string,
+) => {
   const { sasKey, url, accountName } = generateSasToken(
     blobName,
     envs.azureBlobConnStr,
@@ -39,12 +47,19 @@ export const makePresignedUrl = (containerName: string, blobName: string, permis
  * Expiry: 4 hours — long enough for a movie session, short enough that
  * shared tokens die quickly.
  */
-export const getStreamingSasToken = (containerName: string, blobName: string): string => {
+export const getStreamingSasToken = (
+  containerName: string,
+  blobName: string,
+): string => {
+  const videoName =
+    blobName.lastIndexOf(".") > -1
+      ? blobName.substring(0, blobName.lastIndexOf("."))
+      : blobName;
   const { sasKey } = generateSasToken(
-    blobName,
+    videoName + "/*",
     envs.azureBlobConnStr,
     containerName,
-    'r',
+    "r",
     4 * 60 * 60 * 1000, // 4 hours
   );
   return sasKey;
