@@ -23,16 +23,6 @@ app.use(
   }),
 );
 
-// Handle preflight requests
-app.options(
-  '*',
-  cors({
-    origin: ['http://localhost:5173'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  }),
-);
-
 app.use(cookieParser());
 
 app.get('/', (req: Request, res: Response) => {
