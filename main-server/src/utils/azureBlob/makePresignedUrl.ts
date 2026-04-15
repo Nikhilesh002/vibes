@@ -27,7 +27,6 @@ export const makePresignedUrl = (
   permissions: string,
 ) => {
   const { sasKey, url, accountName } = generateSasToken(
-    blobName,
     envs.azureBlobConnStr,
     containerName,
     permissions,
@@ -54,7 +53,6 @@ export const makePresignedUrl = (
  */
 export const getStreamingSasToken = (containerName: string): string => {
   const { sasKey } = generateSasToken(
-    '',
     envs.azureBlobConnStr,
     containerName,
     'r',
@@ -64,7 +62,6 @@ export const getStreamingSasToken = (containerName: string): string => {
 };
 
 function generateSasToken(
-  blobName: string,
   connectionString: string,
   containerName: string,
   permissions: string,
@@ -85,12 +82,6 @@ function generateSasToken(
     permissions: ContainerSASPermissions.parse(permissions),
     expiresOn: new Date(expiryDate),
   };
-
-  // If blobName is provided, scope SAS to that exact blob (for thumbnails/uploads).
-  // If empty, generate container-level SAS (for HLS streaming — needs access to many blobs).
-  if (blobName) {
-    sasParams.blobName = blobName;
-  }
 
   const sasKey = generateBlobSASQueryParameters(sasParams, sharedKeyCredential);
 
