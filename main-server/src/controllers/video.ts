@@ -114,7 +114,6 @@ export const getVideoById = async (
     if (video.transcodedVideoUrl.includes(".blob.core.windows.net/")) {
       transcodedVideoSasToken = getStreamingSasToken(
         envs.destinationContainer,
-        video.blobName,
       );
     }
 

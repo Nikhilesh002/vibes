@@ -44,22 +44,20 @@ export const makePresignedUrl = (
  * Returns just the query string (without '?') so the client can append it
  * to every HLS sub-request (playlists + segments).
  *
+ * Uses a CONTAINER-level SAS (no blobName) because HLS playback needs
+ * access to multiple blobs (master.m3u8, variant playlists, all .ts
+ * segments). Azure Blob SAS doesn't support wildcard/prefix scoping
+ * on standard storage accounts — only container or exact-blob.
+ *
  * Expiry: 4 hours — long enough for a movie session, short enough that
  * shared tokens die quickly.
  */
-export const getStreamingSasToken = (
-  containerName: string,
-  blobName: string,
-): string => {
-  const videoName =
-    blobName.lastIndexOf(".") > -1
-      ? blobName.substring(0, blobName.lastIndexOf("."))
-      : blobName;
+export const getStreamingSasToken = (containerName: string): string => {
   const { sasKey } = generateSasToken(
-    videoName + "/*",
+    '',
     envs.azureBlobConnStr,
     containerName,
-    "r",
+    'r',
     4 * 60 * 60 * 1000, // 4 hours
   );
   return sasKey;
@@ -82,15 +80,19 @@ function generateSasToken(
 
   const expiryDate = Date.now() + expiryMs;
 
-  const sasKey = generateBlobSASQueryParameters(
-    {
-      blobName,
-      containerName,
-      permissions: ContainerSASPermissions.parse(permissions),
-      expiresOn: new Date(expiryDate),
-    },
-    sharedKeyCredential,
-  );
+  const sasParams: any = {
+    containerName,
+    permissions: ContainerSASPermissions.parse(permissions),
+    expiresOn: new Date(expiryDate),
+  };
+
+  // If blobName is provided, scope SAS to that exact blob (for thumbnails/uploads).
+  // If empty, generate container-level SAS (for HLS streaming — needs access to many blobs).
+  if (blobName) {
+    sasParams.blobName = blobName;
+  }
+
+  const sasKey = generateBlobSASQueryParameters(sasParams, sharedKeyCredential);
 
   return {
     sasKey: sasKey.toString(),
