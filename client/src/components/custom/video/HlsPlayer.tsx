@@ -82,12 +82,12 @@ function HlsPlayer({ videoData, onTheaterToggle }: HlsPlayerProps) {
       }
 
       // SAS token — append to every HLS sub-request (playlists + segments)
-    //   if (videoData.videoSasToken) {
-    //     hlsConfig.xhrSetup = (xhr, url) => {
-    //       const sep = url.includes("?") ? "&" : "?"
-    //       xhr.open("GET", `${url}${sep}${videoData.videoSasToken}`, true)
-    //     }
-    //   }
+      if (videoData.videoSasToken) {
+        hlsConfig.xhrSetup = (xhr: XMLHttpRequest, url: string) => {
+          const sep = url.includes("?") ? "&" : "?"
+          xhr.open("GET", `${url}${sep}${videoData.videoSasToken}`, true)
+        }
+      }
 
       hls = new Hls(hlsConfig)
       hlsRef.current = hls
