@@ -8,6 +8,9 @@ import {
 import { envs } from "../configs";
 import { VideoModel } from "../models/video";
 import { LikeModel } from "../models/like";
+import { CommentModel } from "../models/comments";
+import { VideoTranscodingLogsModel } from "../models/videoTranscodingLogs";
+import { blobServiceClient } from "../utils/azureBlob/client";
 import { recordView } from "../utils/redis/viewCounter";
 import { db } from "../configs/db";
 
@@ -389,6 +392,78 @@ export const dislikeVideo = async (
     res.status(400).json({
       success: false,
       msg: "Failed to dislike video",
+    });
+  }
+};
+
+export const deleteVideo = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const videoId = req.params.videoId as string;
+    const userId = req.userId;
+
+    // Find video and verify ownership
+    const video = await VideoModel.findById(videoId);
+    if (!video) {
+      return res.status(404).json({
+        success: false,
+        msg: "Video not found",
+      });
+    }
+
+    if (video.userId.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        msg: "You can only delete your own videos",
+      });
+    }
+
+    // Delete blobs from Azure (best-effort — don't fail the whole operation if blob deletion fails)
+    try {
+      // Delete thumbnail blob
+      if (video.thumbnailUrl.includes(".blob.core.windows.net/")) {
+        const thumbParts = video.thumbnailUrl.split(".blob.core.windows.net/")[1].split("/");
+        const thumbContainer = thumbParts[0];
+        const thumbBlobName = thumbParts.slice(1).join("/");
+        const thumbContainerClient = blobServiceClient.getContainerClient(thumbContainer);
+        await thumbContainerClient.deleteBlob(thumbBlobName).catch(() => {});
+      }
+
+      // Delete transcoded video folder (all segments, playlists, master.m3u8)
+      if (video.transcodedVideoUrl.includes(".blob.core.windows.net/")) {
+        const videoParts = video.transcodedVideoUrl.split(".blob.core.windows.net/")[1].split("/");
+        const videoContainer = videoParts[0];
+        const videoPrefix = videoParts.slice(1).join("/");
+        const containerClient = blobServiceClient.getContainerClient(videoContainer);
+
+        // List and delete all blobs under the video's folder prefix
+        for await (const blob of containerClient.listBlobsFlat({ prefix: videoPrefix + "/" })) {
+          await containerClient.deleteBlob(blob.name).catch(() => {});
+        }
+      }
+    } catch (blobError) {
+      console.error("Error deleting blobs (continuing with DB cleanup):", blobError);
+    }
+
+    // Delete all related documents from MongoDB
+    await Promise.all([
+      LikeModel.deleteMany({ videoId } as any),
+      CommentModel.deleteMany({ videoId } as any),
+      VideoTranscodingLogsModel.deleteMany({ videoId } as any),
+      VideoModel.findByIdAndDelete(videoId),
+    ]);
+
+    return res.json({
+      success: true,
+      msg: "Video deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting video", error);
+    res.status(400).json({
+      success: false,
+      msg: "Failed to delete video",
     });
   }
 };

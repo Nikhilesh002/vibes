@@ -6,6 +6,7 @@ import {
   getVideoById,
   likeVideo,
   dislikeVideo,
+  deleteVideo,
 } from "../controllers/video";
 import { validateAuth } from "../middlewares/validateAuth";
 import { validateInput } from "../middlewares/validateInput";
@@ -60,6 +61,12 @@ videoRouter.get(
   validateAuth,
   validateInput(videoIdParamSchema),
   getVideoById,
+);
+videoRouter.delete(
+  "/:videoId",
+  validateAuth,
+  validateInput(videoIdParamSchema),
+  deleteVideo,
 );
 
 export default videoRouter;
