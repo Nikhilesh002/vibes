@@ -2,13 +2,18 @@ import { Router } from "express";
 import {
   preSignedUrl,
   allVideos,
+  searchVideos,
   getVideoById,
   likeVideo,
   dislikeVideo,
 } from "../controllers/video";
 import { validateAuth } from "../middlewares/validateAuth";
 import { validateInput } from "../middlewares/validateInput";
-import { presignedUrlSchema, videoIdParamSchema } from "../validations/schemas";
+import {
+  presignedUrlSchema,
+  searchQuerySchema,
+  videoIdParamSchema,
+} from "../validations/schemas";
 import { rateLimit } from "../utils/server/rateLimiter";
 
 const uploadRateLimit = rateLimit({
@@ -35,6 +40,7 @@ videoRouter.post(
   preSignedUrl,
 );
 videoRouter.get("/", allVideos);
+videoRouter.get("/search", validateInput(searchQuerySchema), searchVideos);
 videoRouter.put(
   "/:videoId/like",
   validateAuth,

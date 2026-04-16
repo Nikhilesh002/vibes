@@ -57,6 +57,40 @@ export async function preSignedUrl(req: Request, res: Response): Promise<any> {
   }
 }
 
+export const searchVideos = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const q = req.query.q as string;
+
+    const videos = await VideoModel.find(
+      { $text: { $search: q } },
+      { score: { $meta: "textScore" } },
+    )
+      .sort({ score: { $meta: "textScore" } })
+      .limit(30)
+      .select("-logs -__v -transcodedVideoUrl -tempUrl");
+
+    videos.forEach((video: any) => {
+      if (!video) return;
+      if (video.thumbnailUrl.includes(".blob.core.windows.net/"))
+        video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl, "r");
+    });
+
+    return res.json({
+      success: true,
+      videos,
+    });
+  } catch (error) {
+    console.error("Error searching videos", error);
+    res.status(400).json({
+      success: false,
+      msg: "Failed to search videos",
+    });
+  }
+};
+
 export const allVideos = async (req: Request, res: Response): Promise<any> => {
   try {
     const videos = await VideoModel.find({})
