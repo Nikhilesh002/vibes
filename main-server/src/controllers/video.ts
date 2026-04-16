@@ -130,7 +130,7 @@ export const getVideoById = async (
     const video = await VideoModel.findByIdAndUpdate(
       videoId,
       isNewView ? { $inc: { views: 1 } } : {},
-      { new: true },
+      { returnDocument: "after" },
     ).populate("userId", "username avatarUrl");
     if (!video) {
       return res.status(400).json({

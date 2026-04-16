@@ -17,7 +17,6 @@ import {
   MenubarContent,
   MenubarItem,
   MenubarMenu,
-  MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar"
 import { emojis } from "@/lib/emojis"
@@ -60,6 +59,22 @@ function Comments({ videoId }: { videoId: string }) {
       console.error("Error posting comment:", error)
     }
   }, [videoId, newComment, fetchComments])
+
+  const handleDeleteComment = useCallback(
+    async (commentId: string) => {
+      try {
+        const res = await axiosWithToken.delete(
+          `${import.meta.env.VITE_API_URL}/comments/${commentId}`
+        )
+        if (res.data.success) {
+          fetchComments()
+        }
+      } catch (error) {
+        console.error("Error deleting comment:", error)
+      }
+    },
+    [fetchComments]
+  )
 
   // TODO: use react-query
   useEffect(() => {
@@ -195,9 +210,10 @@ function Comments({ videoId }: { videoId: string }) {
                     <EllipsisVertical className="mx-auto h-4 w-4 text-muted-foreground" />
                   </MenubarTrigger>
                   <MenubarContent align="end">
-                    <MenubarItem>Edit</MenubarItem>
-                    <MenubarSeparator />
-                    <MenubarItem className="text-destructive">
+                    <MenubarItem
+                      className="text-destructive"
+                      onClick={() => handleDeleteComment(comment._id)}
+                    >
                       Delete
                     </MenubarItem>
                   </MenubarContent>

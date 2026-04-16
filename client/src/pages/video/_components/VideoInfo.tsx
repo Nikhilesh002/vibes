@@ -1,8 +1,10 @@
 import { Button } from '@/components/ui/button';
+import { axiosWithToken } from '@/lib/axiosWithToken';
 import { formatViews } from '@/lib/formatFuncs';
 import type { IVideoData } from '@/lib/types';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { Download, Share2, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
 interface VideoInfoProps {
@@ -16,13 +18,53 @@ interface VideoInfoProps {
 }
 
 export default function VideoInfo({ videoData, mutation }: VideoInfoProps) {
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subCount, setSubCount] = useState(0);
+
+  const creatorId = videoData?.video?.userId;
+
+  // Fetch subscriber count
+  useEffect(() => {
+    if (!creatorId) return;
+    axiosWithToken
+      .get(`${import.meta.env.VITE_API_URL}/subscription/creator/${creatorId}/count`)
+      .then((res) => {
+        if (res.data.success) setSubCount(res.data.count);
+      })
+      .catch(() => {});
+  }, [creatorId]);
+
+  const handleSubscribe = useCallback(async () => {
+    if (!creatorId) return;
+    try {
+      if (isSubscribed) {
+        await axiosWithToken.delete(`${import.meta.env.VITE_API_URL}/subscription`, {
+          data: { creatorId },
+        });
+        setIsSubscribed(false);
+        setSubCount((c) => Math.max(0, c - 1));
+        toast.success('Unsubscribed');
+      } else {
+        await axiosWithToken.post(`${import.meta.env.VITE_API_URL}/subscription`, {
+          creatorId,
+        });
+        setIsSubscribed(true);
+        setSubCount((c) => c + 1);
+        toast.success('Subscribed!');
+      }
+    } catch (error: any) {
+      // "Already subscribed" means state was out of sync — correct it
+      if (error?.response?.data?.message === 'Already subscribed to this creator') {
+        setIsSubscribed(true);
+      } else {
+        toast.error('Failed to update subscription');
+      }
+    }
+  }, [creatorId, isSubscribed]);
+
   if (!videoData || !videoData.video) {
     return <div>Loading...</div>;
   }
-
-  const handleSubscribe = () => {
-    alert('Subscribe feature coming soon!');
-  };
 
   return (
     <div className="mt-4 space-y-4">
@@ -42,9 +84,17 @@ export default function VideoInfo({ videoData, mutation }: VideoInfoProps) {
           />
           <div>
             <p className="text-sm font-medium leading-none">{videoData.video.creatorName}</p>
+            {subCount > 0 && (
+              <p className="text-xs text-muted-foreground">{formatViews(subCount)} subscribers</p>
+            )}
           </div>
-          <Button size="sm" className="ml-2 rounded-full" onClick={handleSubscribe}>
-            Subscribe
+          <Button
+            size="sm"
+            variant={isSubscribed ? 'outline' : 'default'}
+            className="ml-2 rounded-full"
+            onClick={handleSubscribe}
+          >
+            {isSubscribed ? 'Subscribed' : 'Subscribe'}
           </Button>
         </div>
 
@@ -107,7 +157,9 @@ export default function VideoInfo({ videoData, mutation }: VideoInfoProps) {
           <span className="text-muted-foreground">
             {videoData.video.status === 'PENDING'
               ? 'Processing...'
-              : new Date(videoData.video.completedAt).toDateString()}
+              : videoData.video.status === 'FAILED'
+                ? 'Transcoding failed'
+                : new Date(videoData.video.completedAt).toDateString()}
           </span>
           {videoData.video.tags && videoData.video.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
