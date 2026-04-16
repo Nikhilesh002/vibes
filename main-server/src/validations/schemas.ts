@@ -56,6 +56,12 @@ export const presignedUrlSchema = z.object({
   }),
 });
 
+export const searchQuerySchema = z.object({
+  query: z.object({
+    q: z.string().min(1, 'Search query is required').max(100, 'Search query must be at most 100 characters'),
+  }),
+});
+
 export const videoIdParamSchema = z.object({
   params: z.object({
     videoId: objectId,

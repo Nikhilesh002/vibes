@@ -138,7 +138,26 @@ func main() {
 
 	// transcode videos
 	addLog("Started processing "+blobName+".....", &allLogs)
-	transcode(blobName, inpFileNameWithoutExt, &allLogs)
+	ok := transcode(blobName, inpFileNameWithoutExt, &allLogs)
+	if !ok {
+		addLog("Transcoding FAILED for "+blobName, &allLogs)
+
+		// Mark video as FAILED in MongoDB so the user sees the error
+		mongoClient, mErr := mongo.Connect(context.TODO(), options.Client().ApplyURI(myEnvs.mongodbUri))
+		if mErr == nil {
+			videoObjId, _ := primitive.ObjectIDFromHex(myEnvs.videoId)
+			mdb := mongoClient.Database("vibes")
+			mdb.Collection("videos").UpdateOne(context.TODO(),
+				bson.M{"_id": videoObjId},
+				bson.M{"$set": bson.M{"status": "FAILED", "updatedAt": time.Now()}},
+			)
+			mdb.Collection("videotranscodinglogs").InsertOne(context.TODO(),
+				bson.M{"videoId": videoObjId, "logs": allLogs, "createdAt": time.Now()},
+			)
+			mongoClient.Disconnect(context.TODO())
+		}
+		return // deferred cleanup (delete container) still runs
+	}
 	addLog("Finished processing "+blobName+".....", &allLogs)
 
 	// 3. upload to dest container

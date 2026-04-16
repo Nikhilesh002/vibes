@@ -1,9 +1,10 @@
 import { axiosWithToken } from '@/lib/axiosWithToken';
 import { formatViews, timeElapsed } from '@/lib/formatFuncs';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { PlayCircle } from 'lucide-react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { Loader2, PlayCircle } from 'lucide-react';
 import type { IVideo } from '@/lib/types';
+import { useEffect, useRef } from 'react';
 
 function VideoCardSkeleton() {
   return (
@@ -17,29 +18,59 @@ function VideoCardSkeleton() {
   );
 }
 
+interface VideosPage {
+  videos: IVideo[];
+  nextCursor: string | null;
+}
+
 function Videos() {
   const navigate = useNavigate();
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const {
+    data,
     isPending,
     isError,
-    data: videos,
     error,
-  } = useQuery({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<VideosPage>({
     queryKey: ['get-videos'],
-    queryFn: async (): Promise<IVideo[]> => {
-      const resp = await axiosWithToken.get(
-        `${import.meta.env.VITE_API_URL}/video`,
-      );
+    queryFn: async ({ pageParam }): Promise<VideosPage> => {
+      const params = new URLSearchParams();
+      if (pageParam) params.set('cursor', pageParam as string);
+      params.set('limit', '20');
 
-      return resp.data.videos;
+      const resp = await axiosWithToken.get(
+        `${import.meta.env.VITE_API_URL}/video?${params.toString()}`,
+      );
+      return { videos: resp.data.videos, nextCursor: resp.data.nextCursor };
     },
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    staleTime: 1000 * 60 * 2,
   });
 
-  const handleVideoClick = (video: IVideo) => {
-    navigate(`/video/${video._id}`);
-  };
+  // IntersectionObserver — triggers fetchNextPage when sentinel enters viewport
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const videos = data?.pages.flatMap((page) => page.videos) ?? [];
 
   if (isPending) {
     return (
@@ -62,7 +93,7 @@ function Videos() {
     );
   }
 
-  if (!videos || videos.length === 0) {
+  if (videos.length === 0) {
     return (
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3">
         <PlayCircle className="h-12 w-12 text-muted-foreground/50" />
@@ -77,7 +108,7 @@ function Videos() {
       <div className="grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {videos.map((video: IVideo) => (
           <article
-            onClick={() => handleVideoClick(video)}
+            onClick={() => navigate(`/video/${video._id}`)}
             className="group cursor-pointer"
             key={video._id}
           >
@@ -115,6 +146,13 @@ function Videos() {
             </div>
           </article>
         ))}
+      </div>
+
+      {/* Infinite scroll sentinel */}
+      <div ref={loadMoreRef} className="flex justify-center py-8">
+        {isFetchingNextPage && (
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        )}
       </div>
     </div>
   );

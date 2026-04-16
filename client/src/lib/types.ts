@@ -8,14 +8,14 @@ export interface IVideo extends IUploadVideoForm {
   _id: string;
   blobName: string;
   tempUrl: string;
-  status: 'IN_QUEUE' | 'DONE' | 'PENDING';
+  status: 'IN_QUEUE' | 'DONE' | 'PENDING' | 'FAILED';
   logs: string;
   transcodedVideoUrl: string;
   transcodedVideoSasToken: string;
   thumbnailUrl: string;
   completedAt: number;
 
-  creatorId: string;
+  userId: string;
   creatorName: string;
   creatorAvatar: string;
 

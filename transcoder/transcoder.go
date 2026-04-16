@@ -121,12 +121,12 @@ var defaultLadder = []rung{
 	{"480p", 480, 1000, "96k", 26},
 }
 
-func transcode(inputFileName string, inpFileNameWithoutExt string, allLogs *string) {
+func transcode(inputFileName string, inpFileNameWithoutExt string, allLogs *string) bool {
 	inputPath := "temp/" + inputFileName
 	p := probe(inputPath, allLogs)
 	if p.width == 0 || p.height == 0 {
 		addLog("Cannot determine input dimensions — aborting", allLogs)
-		return
+		return false
 	}
 
 	isPortrait := p.height > p.width
@@ -171,7 +171,7 @@ func transcode(inputFileName string, inpFileNameWithoutExt string, allLogs *stri
 		dir := fmt.Sprintf("%s/output_%d", inpFileNameWithoutExt, i)
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			addLog(fmt.Sprintf("Failed to create dir %s: %v", dir, err), allLogs)
-			return
+			return false
 		}
 	}
 
@@ -285,9 +285,10 @@ func transcode(inputFileName string, inpFileNameWithoutExt string, allLogs *stri
 
 	if err := cmd.Run(); err != nil {
 		addLog("ffmpeg failed: "+err.Error()+"\n"+combined.String(), allLogs)
-		return
+		return false
 	}
 
 	addLog("ffmpeg output:\n"+combined.String(), allLogs)
 	addLog("Transcoding completed successfully.", allLogs)
+	return true
 }

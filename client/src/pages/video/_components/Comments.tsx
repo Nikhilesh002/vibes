@@ -7,6 +7,7 @@ import axios from "axios"
 import {
   EllipsisVertical,
   Heart,
+  Loader2,
   MessageCircle,
   ThumbsDown,
   ThumbsUp,
@@ -17,27 +18,67 @@ import {
   MenubarContent,
   MenubarItem,
   MenubarMenu,
-  MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar"
 import { emojis } from "@/lib/emojis"
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
+
+interface CommentsPage {
+  comments: IComment[]
+  nextCursor: string | null
+}
 
 function Comments({ videoId }: { videoId: string }) {
-  const [comments, setComments] = useState([])
   const [newComment, setNewComment] = useState("")
   const [isFocused, setIsFocused] = useState(false)
-
   const commentInputRef = useRef<HTMLTextAreaElement>(null)
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  const queryClient = useQueryClient()
 
-  const fetchComments = useCallback(async () => {
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/comments/${videoId}`
+  const {
+    data,
+    isPending,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<CommentsPage>({
+    queryKey: ["comments", videoId],
+    queryFn: async ({ pageParam }): Promise<CommentsPage> => {
+      const params = new URLSearchParams()
+      if (pageParam) params.set("cursor", pageParam as string)
+      params.set("limit", "20")
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/comments/${videoId}?${params.toString()}`
+      )
+      return {
+        comments: response.data.comments,
+        nextCursor: response.data.nextCursor,
+      }
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  })
+
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    const el = loadMoreRef.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0.1 }
     )
-    const data = response.data
-    if (data.success) {
-      setComments(data.comments)
-    }
-  }, [videoId])
+
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  const comments = data?.pages.flatMap((page) => page.comments) ?? []
 
   const handleCommentPost = useCallback(async () => {
     if (newComment.trim() === "") return
@@ -45,31 +86,41 @@ function Comments({ videoId }: { videoId: string }) {
     try {
       const res = await axiosWithToken.post(
         `${import.meta.env.VITE_API_URL}/comments/${videoId}`,
-        {
-          content: newComment,
-        }
+        { content: newComment }
       )
 
-      const data = res.data
-      if (data.success) {
+      if (res.data.success) {
         setNewComment("")
         setIsFocused(false)
-        fetchComments()
+        // Refetch comments from the beginning to show the new one at the top
+        queryClient.invalidateQueries({ queryKey: ["comments", videoId] })
       }
     } catch (error) {
       console.error("Error posting comment:", error)
     }
-  }, [videoId, newComment, fetchComments])
+  }, [videoId, newComment, queryClient])
 
-  // TODO: use react-query
-  useEffect(() => {
-    fetchComments()
-  }, [videoId, fetchComments])
+  const handleDeleteComment = useCallback(
+    async (commentId: string) => {
+      try {
+        const res = await axiosWithToken.delete(
+          `${import.meta.env.VITE_API_URL}/comments/${commentId}`
+        )
+        if (res.data.success) {
+          queryClient.invalidateQueries({ queryKey: ["comments", videoId] })
+        }
+      } catch (error) {
+        console.error("Error deleting comment:", error)
+      }
+    },
+    [videoId, queryClient]
+  )
 
   return (
     <div className="mt-8">
       <h2 className="text-base font-semibold">
-        {comments.length} Comment{comments.length !== 1 ? "s" : ""}
+        {isPending ? "" : `${comments.length}${hasNextPage ? "+" : ""} `}
+        Comment{comments.length !== 1 ? "s" : ""}
       </h2>
 
       {/* Comment input */}
@@ -127,7 +178,7 @@ function Comments({ videoId }: { videoId: string }) {
 
       {/* Comments list */}
       <div className="mt-6 space-y-5">
-        {comments.length === 0 ? (
+        {!isPending && comments.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
             <MessageCircle className="h-8 w-8 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">
@@ -195,9 +246,10 @@ function Comments({ videoId }: { videoId: string }) {
                     <EllipsisVertical className="mx-auto h-4 w-4 text-muted-foreground" />
                   </MenubarTrigger>
                   <MenubarContent align="end">
-                    <MenubarItem>Edit</MenubarItem>
-                    <MenubarSeparator />
-                    <MenubarItem className="text-destructive">
+                    <MenubarItem
+                      className="text-destructive"
+                      onClick={() => handleDeleteComment(comment._id)}
+                    >
                       Delete
                     </MenubarItem>
                   </MenubarContent>
@@ -205,6 +257,13 @@ function Comments({ videoId }: { videoId: string }) {
               </Menubar>
             </div>
           ))
+        )}
+      </div>
+
+      {/* Infinite scroll sentinel */}
+      <div ref={loadMoreRef} className="flex justify-center py-4">
+        {isFetchingNextPage && (
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         )}
       </div>
     </div>

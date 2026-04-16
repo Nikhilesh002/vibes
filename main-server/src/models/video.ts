@@ -49,4 +49,10 @@ const videoSchema = new mongoose.Schema(
   },
 );
 
+// Text index for search — weights title higher than description and tags
+videoSchema.index(
+  { title: 'text', description: 'text', tags: 'text' },
+  { weights: { title: 10, description: 3, tags: 5 } },
+);
+
 export const VideoModel = mongoose.model('Video', videoSchema);
