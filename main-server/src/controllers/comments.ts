@@ -9,20 +9,29 @@ export const getComments = async (
 ): Promise<any> => {
   try {
     const videoId = req.params.videoId as string;
+    const cursor = req.query.cursor as string | undefined;
+    const limit = Math.min(Number(req.query.limit) || 20, 50);
 
-    const comments = await CommentModel.find({
-      videoId,
-    } as any)
+    const filter: any = { videoId };
+    if (cursor) {
+      filter._id = { $lt: cursor };
+    }
+
+    const comments = await CommentModel.find(filter)
       .populate({
         path: "userId",
         select: "username avatarUrl",
       })
+      .sort({ _id: -1 })
+      .limit(limit + 1);
 
-      .sort({ createdAt: -1 });
+    const hasMore = comments.length > limit;
+    if (hasMore) comments.pop();
 
     return res.status(200).json({
       success: true,
       comments,
+      nextCursor: hasMore ? comments[comments.length - 1]._id : null,
     });
   } catch (error) {
     return res.status(500).json({

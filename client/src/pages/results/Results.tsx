@@ -1,8 +1,9 @@
 import { axiosWithToken } from '@/lib/axiosWithToken';
 import { formatViews, timeElapsed } from '@/lib/formatFuncs';
 import type { IVideo } from '@/lib/types';
-import { useQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { Loader2, Search } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 function ResultSkeleton() {
@@ -18,27 +19,63 @@ function ResultSkeleton() {
   );
 }
 
+interface SearchPage {
+  videos: IVideo[];
+  nextCursor: string | null;
+}
+
 function Results() {
   const location = useLocation();
   const navigate = useNavigate();
   const query = new URLSearchParams(location.search).get('query') || '';
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const {
+    data,
     isPending,
     isError,
-    data: videos,
     error,
-  } = useQuery({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<SearchPage>({
     queryKey: ['search-videos', query],
-    queryFn: async (): Promise<IVideo[]> => {
+    queryFn: async ({ pageParam }): Promise<SearchPage> => {
+      const params = new URLSearchParams();
+      params.set('q', query);
+      if (pageParam) params.set('cursor', pageParam as string);
+      params.set('limit', '20');
+
       const resp = await axiosWithToken.get(
-        `${import.meta.env.VITE_API_URL}/video/search?q=${encodeURIComponent(query)}`,
+        `${import.meta.env.VITE_API_URL}/video/search?${params.toString()}`,
       );
-      return resp.data.videos;
+      return { videos: resp.data.videos, nextCursor: resp.data.nextCursor };
     },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: !!query,
     staleTime: 1000 * 60 * 2,
   });
+
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const videos = data?.pages.flatMap((page) => page.videos) ?? [];
 
   if (!query) {
     return (
@@ -85,7 +122,7 @@ function Results() {
         </h1>
       </div>
 
-      {!videos || videos.length === 0 ? (
+      {videos.length === 0 ? (
         <div className="mt-12 flex flex-col items-center gap-3 text-center">
           <Search className="h-10 w-10 text-muted-foreground/40" />
           <p className="text-sm text-muted-foreground">
@@ -138,6 +175,13 @@ function Results() {
           ))}
         </div>
       )}
+
+      {/* Infinite scroll sentinel */}
+      <div ref={loadMoreRef} className="flex justify-center py-8">
+        {isFetchingNextPage && (
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        )}
+      </div>
     </div>
   );
 }

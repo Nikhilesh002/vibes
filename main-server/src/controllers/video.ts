@@ -63,14 +63,23 @@ export const searchVideos = async (
 ): Promise<any> => {
   try {
     const q = req.query.q as string;
+    const cursor = req.query.cursor as string | undefined;
+    const limit = Math.min(Number(req.query.limit) || 20, 50);
 
-    const videos = await VideoModel.find(
-      { $text: { $search: q } },
-      { score: { $meta: "textScore" } },
-    )
-      .sort({ score: { $meta: "textScore" } })
-      .limit(30)
+    const filter: any = { $text: { $search: q } };
+    if (cursor) {
+      filter._id = { $lt: cursor };
+    }
+
+    const videos = await VideoModel.find(filter, {
+      score: { $meta: "textScore" },
+    })
+      .sort({ score: { $meta: "textScore" }, _id: -1 })
+      .limit(limit + 1)
       .select("-logs -__v -transcodedVideoUrl -tempUrl");
+
+    const hasMore = videos.length > limit;
+    if (hasMore) videos.pop();
 
     videos.forEach((video: any) => {
       if (!video) return;
@@ -81,6 +90,7 @@ export const searchVideos = async (
     return res.json({
       success: true,
       videos,
+      nextCursor: hasMore ? videos[videos.length - 1]._id : null,
     });
   } catch (error) {
     console.error("Error searching videos", error);
@@ -93,9 +103,21 @@ export const searchVideos = async (
 
 export const allVideos = async (req: Request, res: Response): Promise<any> => {
   try {
-    const videos = await VideoModel.find({})
-      .limit(30)
+    const cursor = req.query.cursor as string | undefined;
+    const limit = Math.min(Number(req.query.limit) || 20, 50);
+
+    const filter: any = {};
+    if (cursor) {
+      filter._id = { $lt: cursor };
+    }
+
+    const videos = await VideoModel.find(filter)
+      .sort({ _id: -1 })
+      .limit(limit + 1) // fetch one extra to check if there's a next page
       .select("-logs -__v -transcodedVideoUrl -tempUrl");
+
+    const hasMore = videos.length > limit;
+    if (hasMore) videos.pop(); // remove the extra
 
     videos.forEach((video: any) => {
       if (!video) return;
@@ -106,6 +128,7 @@ export const allVideos = async (req: Request, res: Response): Promise<any> => {
     return res.json({
       success: true,
       videos,
+      nextCursor: hasMore ? videos[videos.length - 1]._id : null,
     });
   } catch (error) {
     console.error("Error getting videos", error);
