@@ -8,6 +8,7 @@ import {
 import { envs } from "../configs";
 import { VideoModel } from "../models/video";
 import { LikeModel } from "../models/like";
+import { recordView } from "../utils/redis/viewCounter";
 import { db } from "../configs/db";
 
 export async function preSignedUrl(req: Request, res: Response): Promise<any> {
@@ -89,9 +90,14 @@ export const getVideoById = async (
     const videoId = req.params.videoId as string;
     const userId = req.userId;
 
-    const video = await VideoModel.findByIdAndUpdate(videoId, {
-      $inc: { views: 1 },
-    }).populate("userId", "username avatarUrl");
+    // Deduplicated view count — only increments once per user per 24 hours
+    const isNewView = await recordView(videoId, userId);
+
+    const video = await VideoModel.findByIdAndUpdate(
+      videoId,
+      isNewView ? { $inc: { views: 1 } } : {},
+      { new: true },
+    ).populate("userId", "username avatarUrl");
     if (!video) {
       return res.status(400).json({
         success: false,
