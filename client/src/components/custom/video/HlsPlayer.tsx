@@ -8,7 +8,7 @@ interface HlsPlayerProps {
   videoData: {
     thumbnailUrl: string
     videoUrl: string
-    videoSasToken: string
+    videoSasToken?: string
   }
   onTheaterToggle?: (isTheater: boolean) => void
 }

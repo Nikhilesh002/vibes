@@ -1,32 +1,30 @@
-import { Request, Response } from "express";
+import { Request, Response } from 'express';
 
 import {
   getPresignedUrl,
-  getStreamingSasToken,
   makePresignedUrl,
-} from "../utils/azureBlob/makePresignedUrl";
-import { envs } from "../configs";
-import { VideoModel } from "../models/video";
-import { LikeModel } from "../models/like";
-import { CommentModel } from "../models/comments";
-import { VideoTranscodingLogsModel } from "../models/videoTranscodingLogs";
-import { blobServiceClient } from "../utils/azureBlob/client";
-import { recordView } from "../utils/redis/viewCounter";
-import { db } from "../configs/db";
+} from '../utils/azureBlob/makePresignedUrl';
+import { VideoModel } from '../models/video';
+import { LikeModel } from '../models/like';
+import { CommentModel } from '../models/comments';
+import { VideoTranscodingLogsModel } from '../models/videoTranscodingLogs';
+import { blobServiceClient } from '../utils/azureBlob/client';
+import { recordView } from '../utils/redis/viewCounter';
+import { db } from '../configs/db';
 
 export async function preSignedUrl(req: Request, res: Response): Promise<any> {
   try {
     const { videoKey, thumbnailKey, title, description, tags } = req.body;
 
     const { url: videoUrl, sasKey: videoSasKey } = makePresignedUrl(
-      "tempbucket",
+      'tempbucket',
       videoKey,
-      "c",
+      'c',
     );
     const { url: thumbnailUrl, sasKey: thumbnailSasKey } = makePresignedUrl(
-      "thumbnail",
+      'thumbnail',
       thumbnailKey,
-      "c",
+      'c',
     );
 
     const resp = await VideoModel.create({
@@ -36,9 +34,9 @@ export async function preSignedUrl(req: Request, res: Response): Promise<any> {
       tags,
       tempUrl: videoUrl,
       thumbnailUrl,
-      status: "PENDING",
-      logs: "",
-      transcodedVideoUrl: "",
+      status: 'PENDING',
+      logs: '',
+      transcodedVideoUrl: '',
       completedAt: 0,
       userId: req.userId,
     } as any);
@@ -52,10 +50,10 @@ export async function preSignedUrl(req: Request, res: Response): Promise<any> {
       videoId: resp._id,
     });
   } catch (error) {
-    console.error("Error creating signed URL", error);
+    console.error('Error creating signed URL', error);
     res.status(400).json({
       success: false,
-      msg: "Failed to create signed URL",
+      msg: 'Failed to create signed URL',
     });
   }
 }
@@ -75,19 +73,19 @@ export const searchVideos = async (
     }
 
     const videos = await VideoModel.find(filter, {
-      score: { $meta: "textScore" },
+      score: { $meta: 'textScore' },
     })
-      .sort({ score: { $meta: "textScore" }, _id: -1 })
+      .sort({ score: { $meta: 'textScore' }, _id: -1 })
       .limit(limit + 1)
-      .select("-logs -__v -transcodedVideoUrl -tempUrl");
+      .select('-logs -__v -transcodedVideoUrl -tempUrl');
 
     const hasMore = videos.length > limit;
     if (hasMore) videos.pop();
 
     videos.forEach((video: any) => {
       if (!video) return;
-      if (video.thumbnailUrl.includes(".blob.core.windows.net/"))
-        video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl, "r");
+      if (video.thumbnailUrl.includes('.blob.core.windows.net/'))
+        video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl, 'r');
     });
 
     return res.json({
@@ -96,10 +94,10 @@ export const searchVideos = async (
       nextCursor: hasMore ? videos[videos.length - 1]._id : null,
     });
   } catch (error) {
-    console.error("Error searching videos", error);
+    console.error('Error searching videos', error);
     res.status(400).json({
       success: false,
-      msg: "Failed to search videos",
+      msg: 'Failed to search videos',
     });
   }
 };
@@ -117,15 +115,15 @@ export const allVideos = async (req: Request, res: Response): Promise<any> => {
     const videos = await VideoModel.find(filter)
       .sort({ _id: -1 })
       .limit(limit + 1) // fetch one extra to check if there's a next page
-      .select("-logs -__v -transcodedVideoUrl -tempUrl");
+      .select('-logs -__v -transcodedVideoUrl -tempUrl');
 
     const hasMore = videos.length > limit;
     if (hasMore) videos.pop(); // remove the extra
 
     videos.forEach((video: any) => {
       if (!video) return;
-      if (video.thumbnailUrl.includes(".blob.core.windows.net/"))
-        video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl, "r");
+      if (video.thumbnailUrl.includes('.blob.core.windows.net/'))
+        video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl, 'r');
     });
 
     return res.json({
@@ -134,10 +132,10 @@ export const allVideos = async (req: Request, res: Response): Promise<any> => {
       nextCursor: hasMore ? videos[videos.length - 1]._id : null,
     });
   } catch (error) {
-    console.error("Error getting videos", error);
+    console.error('Error getting videos', error);
     res.status(400).json({
       success: false,
-      msg: "Failed to fetch videos",
+      msg: 'Failed to fetch videos',
     });
   }
 };
@@ -156,12 +154,12 @@ export const getVideoById = async (
     const video = await VideoModel.findByIdAndUpdate(
       videoId,
       isNewView ? { $inc: { views: 1 } } : {},
-      { returnDocument: "after" },
-    ).populate("userId", "username avatarUrl");
+      { returnDocument: 'after' },
+    ).populate('userId', 'username avatarUrl');
     if (!video) {
       return res.status(400).json({
         success: false,
-        msg: "Video not found",
+        msg: 'Video not found',
       });
     }
 
@@ -170,18 +168,8 @@ export const getVideoById = async (
       userId,
     } as any);
 
-    if (video.thumbnailUrl.includes(".blob.core.windows.net/"))
-      video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl, "r");
-
-    // Generate a 4-hour read-only SAS token for HLS streaming.
-    // Returned separately because HLS relative URL resolution strips query
-    // params — the client must append this token to every sub-request.
-    let transcodedVideoSasToken = "";
-    if (video.transcodedVideoUrl.includes(".blob.core.windows.net/")) {
-      transcodedVideoSasToken = getStreamingSasToken(
-        envs.destinationContainer,
-      );
-    }
+    if (video.thumbnailUrl.includes('.blob.core.windows.net/'))
+      video.thumbnailUrl = getPresignedUrl(video.thumbnailUrl, 'r');
 
     const populatedUser: any = video.userId;
 
@@ -189,18 +177,17 @@ export const getVideoById = async (
       success: true,
       video: {
         ...video.toObject(),
-        transcodedVideoSasToken,
         userId: populatedUser._id,
         creatorName: populatedUser.username,
         creatorAvatar: populatedUser.avatarUrl,
       },
-      likeStatus: like ? like.likeStatus : "NONE",
+      likeStatus: like ? like.likeStatus : 'NONE',
     });
   } catch (error) {
-    console.error("Error getting video by id", error);
+    console.error('Error getting video by id', error);
     res.status(400).json({
       success: false,
-      msg: "Failed to fetch video",
+      msg: 'Failed to fetch video',
     });
   }
 };
@@ -221,7 +208,7 @@ export const likeVideo = async (req: Request, res: Response): Promise<any> => {
       } as any).session(session);
 
       if (resp1) {
-        if (resp1.likeStatus === "LIKED") {
+        if (resp1.likeStatus === 'LIKED') {
           await LikeModel.deleteOne({
             userId,
             videoId,
@@ -233,22 +220,22 @@ export const likeVideo = async (req: Request, res: Response): Promise<any> => {
           ).session(session);
 
           if (!resp3) {
-            throw new Error("Video not found");
+            throw new Error('Video not found');
           }
-        } else if (resp1.likeStatus === "DISLIKED") {
+        } else if (resp1.likeStatus === 'DISLIKED') {
           await LikeModel.updateOne(
             { _id: resp1._id },
-            { likeStatus: "LIKED" },
+            { likeStatus: 'LIKED' },
           ).session(session);
 
           await VideoModel.findOneAndUpdate(
             { _id: videoId },
             { $inc: { likes: 1, dislikes: -1 } },
           ).session(session);
-        } else if (resp1.likeStatus === "NONE") {
+        } else if (resp1.likeStatus === 'NONE') {
           await LikeModel.updateOne(
             { _id: resp1._id },
-            { likeStatus: "LIKED" },
+            { likeStatus: 'LIKED' },
           ).session(session);
 
           await VideoModel.findOneAndUpdate(
@@ -262,7 +249,7 @@ export const likeVideo = async (req: Request, res: Response): Promise<any> => {
             {
               videoId,
               userId,
-              likeStatus: "LIKED",
+              likeStatus: 'LIKED',
             },
           ] as any,
           { session },
@@ -274,13 +261,13 @@ export const likeVideo = async (req: Request, res: Response): Promise<any> => {
         ).session(session);
 
         if (!resp3) {
-          throw new Error("Video not found");
+          throw new Error('Video not found');
         }
       }
 
       await session.commitTransaction();
     } catch (error) {
-      console.log("Error in likeVideo transaction", error);
+      console.log('Error in likeVideo transaction', error);
       await session.abortTransaction();
       throw error;
     } finally {
@@ -291,10 +278,10 @@ export const likeVideo = async (req: Request, res: Response): Promise<any> => {
       success: true,
     });
   } catch (error) {
-    console.error("Error liking video", error);
+    console.error('Error liking video', error);
     res.status(400).json({
       success: false,
-      msg: "Failed to like video",
+      msg: 'Failed to like video',
     });
   }
 };
@@ -318,7 +305,7 @@ export const dislikeVideo = async (
       } as any).session(session);
 
       if (resp1) {
-        if (resp1.likeStatus === "DISLIKED") {
+        if (resp1.likeStatus === 'DISLIKED') {
           await LikeModel.deleteOne({
             userId,
             videoId,
@@ -330,22 +317,22 @@ export const dislikeVideo = async (
           ).session(session);
 
           if (!resp3) {
-            throw new Error("Video not found");
+            throw new Error('Video not found');
           }
-        } else if (resp1.likeStatus === "LIKED") {
+        } else if (resp1.likeStatus === 'LIKED') {
           await LikeModel.updateOne(
             { _id: resp1._id },
-            { likeStatus: "DISLIKED" },
+            { likeStatus: 'DISLIKED' },
           ).session(session);
 
           await VideoModel.findOneAndUpdate(
             { _id: videoId },
             { $inc: { likes: -1, dislikes: 1 } },
           ).session(session);
-        } else if (resp1.likeStatus === "NONE") {
+        } else if (resp1.likeStatus === 'NONE') {
           await LikeModel.updateOne(
             { _id: resp1._id },
-            { likeStatus: "DISLIKED" },
+            { likeStatus: 'DISLIKED' },
           ).session(session);
 
           await VideoModel.findOneAndUpdate(
@@ -359,7 +346,7 @@ export const dislikeVideo = async (
             {
               videoId,
               userId,
-              likeStatus: "DISLIKED",
+              likeStatus: 'DISLIKED',
             },
           ] as any,
           { session },
@@ -371,13 +358,13 @@ export const dislikeVideo = async (
         ).session(session);
 
         if (!resp3) {
-          throw new Error("Video not found");
+          throw new Error('Video not found');
         }
       }
 
       await session.commitTransaction();
     } catch (error) {
-      console.log("Error in dislikeVideo transaction", error);
+      console.log('Error in dislikeVideo transaction', error);
       await session.abortTransaction();
       throw error;
     } finally {
@@ -388,10 +375,10 @@ export const dislikeVideo = async (
       success: true,
     });
   } catch (error) {
-    console.error("Error disliking video", error);
+    console.error('Error disliking video', error);
     res.status(400).json({
       success: false,
-      msg: "Failed to dislike video",
+      msg: 'Failed to dislike video',
     });
   }
 };
@@ -409,42 +396,53 @@ export const deleteVideo = async (
     if (!video) {
       return res.status(404).json({
         success: false,
-        msg: "Video not found",
+        msg: 'Video not found',
       });
     }
 
     if (video.userId.toString() !== userId) {
       return res.status(403).json({
         success: false,
-        msg: "You can only delete your own videos",
+        msg: 'You can only delete your own videos',
       });
     }
 
     // Delete blobs from Azure (best-effort — don't fail the whole operation if blob deletion fails)
     try {
       // Delete thumbnail blob
-      if (video.thumbnailUrl.includes(".blob.core.windows.net/")) {
-        const thumbParts = video.thumbnailUrl.split(".blob.core.windows.net/")[1].split("/");
+      if (video.thumbnailUrl.includes('.blob.core.windows.net/')) {
+        const thumbParts = video.thumbnailUrl
+          .split('.blob.core.windows.net/')[1]
+          .split('/');
         const thumbContainer = thumbParts[0];
-        const thumbBlobName = thumbParts.slice(1).join("/");
-        const thumbContainerClient = blobServiceClient.getContainerClient(thumbContainer);
+        const thumbBlobName = thumbParts.slice(1).join('/');
+        const thumbContainerClient =
+          blobServiceClient.getContainerClient(thumbContainer);
         await thumbContainerClient.deleteBlob(thumbBlobName).catch(() => {});
       }
 
       // Delete transcoded video folder (all segments, playlists, master.m3u8)
-      if (video.transcodedVideoUrl.includes(".blob.core.windows.net/")) {
-        const videoParts = video.transcodedVideoUrl.split(".blob.core.windows.net/")[1].split("/");
+      if (video.transcodedVideoUrl.includes('.blob.core.windows.net/')) {
+        const videoParts = video.transcodedVideoUrl
+          .split('.blob.core.windows.net/')[1]
+          .split('/');
         const videoContainer = videoParts[0];
-        const videoPrefix = videoParts.slice(1).join("/");
-        const containerClient = blobServiceClient.getContainerClient(videoContainer);
+        const videoPrefix = videoParts.slice(1).join('/');
+        const containerClient =
+          blobServiceClient.getContainerClient(videoContainer);
 
         // List and delete all blobs under the video's folder prefix
-        for await (const blob of containerClient.listBlobsFlat({ prefix: videoPrefix + "/" })) {
+        for await (const blob of containerClient.listBlobsFlat({
+          prefix: videoPrefix + '/',
+        })) {
           await containerClient.deleteBlob(blob.name).catch(() => {});
         }
       }
     } catch (blobError) {
-      console.error("Error deleting blobs (continuing with DB cleanup):", blobError);
+      console.error(
+        'Error deleting blobs (continuing with DB cleanup):',
+        blobError,
+      );
     }
 
     // Delete all related documents from MongoDB
@@ -457,13 +455,13 @@ export const deleteVideo = async (
 
     return res.json({
       success: true,
-      msg: "Video deleted successfully",
+      msg: 'Video deleted successfully',
     });
   } catch (error) {
-    console.error("Error deleting video", error);
+    console.error('Error deleting video', error);
     res.status(400).json({
       success: false,
-      msg: "Failed to delete video",
+      msg: 'Failed to delete video',
     });
   }
 };

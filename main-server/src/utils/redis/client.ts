@@ -7,14 +7,16 @@ export const getRedis = (): Redis => {
   if (!redis) {
     redis = new Redis(envs.redisUrl, {
       maxRetriesPerRequest: 3,
-      retryStrategy(times) {
+      retryStrategy(times: number) {
         // exponential backoff: 200ms, 400ms, 800ms… capped at 5s
         return Math.min(times * 200, 5000);
       },
     });
 
     redis.on('connect', () => console.log('[redis] connected'));
-    redis.on('error', (err) => console.error('[redis] error:', err.message));
+    redis.on('error', (err: Error) =>
+      console.error('[redis] error:', err.message),
+    );
   }
 
   return redis;

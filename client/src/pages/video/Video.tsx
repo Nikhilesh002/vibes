@@ -190,7 +190,6 @@ function Video() {
                   )
                     ? videoData.video.transcodedVideoUrl
                     : videoData.video.transcodedVideoUrl + "/master.m3u8",
-                  videoSasToken: videoData.video.transcodedVideoSasToken,
                 }}
                 onTheaterToggle={setIsTheater}
               />
