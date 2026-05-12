@@ -291,7 +291,7 @@ function HlsPlayer({ videoData, onTheaterToggle }: HlsPlayerProps) {
   return (
     <div
       ref={containerRef}
-      className="group relative bg-black focus:outline-none"
+      className="group relative max-h-[70vh] w-full overflow-hidden bg-black focus:outline-none"
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
@@ -299,7 +299,7 @@ function HlsPlayer({ videoData, onTheaterToggle }: HlsPlayerProps) {
         ref={videoRef}
         controls
         autoPlay={true}
-        className="w-full"
+        className="block h-auto max-h-[70vh] w-full max-w-full object-contain"
         poster={videoData.thumbnailUrl}
       />
 
